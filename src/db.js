@@ -32,11 +32,11 @@ export async function getGlobalContext() {
     if (!context) {
         context = {
             id: 'default',
-            ai_name: "SERAA",
-            user_name: "Kiann",
+            ai_name: "Seraa",
+            user_name: "User",
             long_term_memory: { memory: [] },
             saved_info: { info: [] },
-            user_location: "Yogyakarta",
+            user_location: "Jakarta",
             safety_settings: "BLOCK_MEDIUM_AND_ABOVE"
         };
         await saveGlobalContext(context);

@@ -197,7 +197,7 @@ async function handleRemember() {
         return;
     }
     
-    rememberButton.textContent = '🧠 Remembering...';
+    rememberButton.textContent = 'Remembering...';
     rememberButton.disabled = true;
 
     try {
@@ -218,7 +218,7 @@ async function handleRemember() {
         console.error("Failed to remember conversation:", error);
         alert("Sorry, there was an error trying to remember this conversation.");
     } finally {
-        rememberButton.textContent = '🧠 Remember';
+        rememberButton.textContent = 'Remember';
         rememberButton.disabled = false;
     }
 }
