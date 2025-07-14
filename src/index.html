@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SERAA - Installation</title>
+    <meta name="theme-color" content="#1a1a1a"/>
+    <link rel="stylesheet" href="../assets/styles/styles.css">
+    <link rel="manifest" href="../manifest.json">
+</head>
+<body>
+    <div class="container centered">
+        <h1>SERAA</h1>
+        <p class="tagline">Self Reflection Agentic AI</p>
+        <p>A privacy-first personal AI designed to reflect you. Install it to your device to begin.</p>
+        <button id="installButton" class="button">Install SERAA</button>
+    </div>
+
+    <script>
+        // Redirect if already installed
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            window.location.href = 'app.html';
+        }
+
+        let deferredPrompt;
+        const installButton = document.getElementById('installButton');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+            // Update UI to show the install button
+            installButton.style.display = 'block';
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // Show the install prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('User accepted the SERAA installation');
+                    window.location.href = 'app.html';
+                } else {
+                    console.log('User dismissed the SERAA installation');
+                }
+                deferredPrompt = null;
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            installButton.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
