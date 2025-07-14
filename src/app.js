@@ -19,6 +19,10 @@ const sessionTitle = document.getElementById('session-title');
 const newChatButton = document.getElementById('new-chat-button');
 const rememberButton = document.getElementById('remember-button');
 const settingsIcon = document.getElementById('settings-icon');
+const sidebar = document.getElementById('sidebar');
+const menuToggleButton = document.getElementById('menu-toggle-button');
+const overlay = document.getElementById('overlay');
+
 
 // --- Main Application Logic ---
 document.addEventListener('DOMContentLoaded', main);
@@ -44,7 +48,10 @@ async function main() {
     }
     
     initSidebar(allSessions, sessionToLoad.id, {
-        onSessionSelect: loadSessionById,
+        onSessionSelect: (sessionId) => {
+            loadSessionById(sessionId);
+            closeSidebar();
+        },
         onSessionDelete: handleSessionDeleted,
         onSessionUpdate: (session) => {
             if (session.id === activeSession.id) {
@@ -64,10 +71,24 @@ async function main() {
     chatForm.addEventListener('submit', handleChatSubmit);
     newChatButton.addEventListener('click', handleNewChat);
     rememberButton.addEventListener('click', handleRemember);
+    menuToggleButton.addEventListener('click', toggleSidebar);
+    overlay.addEventListener('click', toggleSidebar);
+    
     chatInput.addEventListener('input', () => {
         chatInput.style.height = 'auto';
         chatInput.style.height = `${chatInput.scrollHeight}px`;
     });
+}
+
+// --- Responsive Sidebar Logic ---
+function toggleSidebar() {
+    sidebar.classList.toggle('sidebar-visible');
+    overlay.classList.toggle('visible');
+}
+
+function closeSidebar() {
+    sidebar.classList.remove('sidebar-visible');
+    overlay.classList.remove('visible');
 }
 
 // --- Session Management ---
@@ -93,6 +114,7 @@ async function handleNewChat() {
     const newSession = await createNewSession();
     loadSession(newSession);
     updateSidebar(allSessions, newSession.id);
+    closeSidebar();
 }
 
 function loadSession(session) {
@@ -159,7 +181,6 @@ async function handleChatSubmit(e) {
         response: aiResponse
     });
     
-    // Auto-rename session if it's the first message
     if (activeSession.previous_interactions.length === 1) {
         const renamePrompt = `Based on this initial user prompt, create a very short title for this conversation (maximum 4-5 words). User Prompt: "${userInput}"`;
         activeSession.name = await callGemini(renamePrompt, apiKey, "BLOCK_NONE");
