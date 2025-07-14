@@ -1,3 +1,4 @@
+// File: src/db.js
 import { openDB } from 'https://cdn.jsdelivr.net/npm/idb@7/build/index.min.js';
 
 const DB_NAME = 'SERAA_DB';
@@ -10,11 +11,9 @@ export async function initDB() {
 
     db = await openDB(DB_NAME, DB_VERSION, {
         upgrade(db) {
-            // Store for global context (persona, long-term memory, etc.)
             if (!db.objectStoreNames.contains('global_context')) {
                 db.createObjectStore('global_context', { keyPath: 'id' });
             }
-            // Store for individual chat sessions
             if (!db.objectStoreNames.contains('sessions')) {
                 db.createObjectStore('sessions', { keyPath: 'id', autoIncrement: true });
             }
@@ -28,14 +27,13 @@ export async function getGlobalContext() {
     const tx = db.transaction('global_context', 'readonly');
     let context = await tx.store.get('default');
     if (!context) {
-        // Create a default context if it doesn't exist
         context = {
             id: 'default',
-            ai_name: "SERAA",
-            user_name: "Kiann",
+            ai_name: "Seraa",
+            user_name: "User",
             long_term_memory: { memory: [] },
             saved_info: { info: [] },
-            user_location: "Yogyakarta",
+            user_location: "Jakarta",
             safety_settings: "block_none"
         };
         await saveGlobalContext(context);
@@ -50,15 +48,22 @@ export async function saveGlobalContext(context) {
     console.log('Global context saved.');
 }
 
-export async function saveSession(session) {
+export async function upsertSession(session) {
     const tx = db.transaction('sessions', 'readwrite');
     const id = await tx.store.put(session);
     await tx.done;
-    console.log(`Session ${id} saved.`);
+    console.log(`Session ${id} upserted.`);
     return id;
 }
 
 export async function getSession(id) {
     const tx = db.transaction('sessions', 'readonly');
     return await tx.store.get(id);
+}
+
+export async function getLatestSession() {
+    const tx = db.transaction('sessions', 'readonly');
+    const store = tx.store;
+    const cursor = await store.openCursor(null, 'prev');
+    return cursor ? cursor.value : null;
 }

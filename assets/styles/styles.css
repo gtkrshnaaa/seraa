@@ -236,3 +236,22 @@ button {
 .close-button:hover {
     color: var(--primary-text);
 }
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-button {
+    background-color: var(--surface);
+    color: var(--primary-text);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    font-weight: normal;
+}
+
+.header-button:hover {
+    background-color: var(--border-color);
+}
