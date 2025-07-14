@@ -1,14 +1,22 @@
-const CACHE_NAME = 'seraa-cache-v1';
+const CACHE_NAME = 'seraa-cache-v2'; 
 const URLS_TO_CACHE = [
+    // Root and entry points
     '/',
-    '/index.html',
-    '/app.html',
-    '/styles.css',
-    '/app.js',
-    '/db.js',
-    '/key_manager.js',
-    '/context_builder.js',
-    '/api.js',
+    '/src/index.html',
+    '/src/app.html',
+
+    // Styles
+    '/assets/styles/styles.css',
+
+    // Scripts
+    '/src/app.js',
+    '/src/db.js',
+    '/src/key_manager.js',
+    '/src/context_builder.js',
+    '/src/api.js',
+    'https://cdn.jsdelivr.net/npm/idb@7/build/index.min.js', // Cache the CDN library
+
+    // Manifest
     '/manifest.json'
 ];
 
@@ -19,6 +27,19 @@ self.addEventListener('install', event => {
                 console.log('Opened cache');
                 return cache.addAll(URLS_TO_CACHE);
             })
+    );
+    self.skipWaiting(); // Force the new service worker to activate
+});
+
+self.addEventListener('activate', event => {
+    // Clean up old caches
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.filter(name => name !== CACHE_NAME)
+                    .map(name => caches.delete(name))
+            );
+        })
     );
 });
 
