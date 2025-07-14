@@ -1,6 +1,6 @@
 // File: service-worker.js (Corrected for GitHub Pages)
 
-const CACHE_NAME = 'seraa-cache-v11'; // Version bump to trigger re-caching
+const CACHE_NAME = 'seraa-cache-v12'; // Version bump to trigger re-caching
 const URLS_TO_CACHE = [
     // Paths are now relative to the project root, not the domain root.
     // The base URL from the <base> tag in your HTML handles the sub-directory.
