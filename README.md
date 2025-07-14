@@ -1,7 +1,6 @@
+# **SERA – Self Reflection Agentic AI (PWA Edition)**
 
-# **SERA – Self Reflection Agentic AI**
-
-> *"Bukan hanya AI yang menjawab, tapi AI yang mengingat, memahami, dan berkembang bersamamu."*
+> *"Bukan sekadar AI pintar. Ini adalah cerminan dirimu, yang tumbuh seiring waktu."*
 
 ---
 
@@ -13,52 +12,62 @@
 
 ## 2. Visi
 
-Membangun AI partner pribadi yang:
+Membangun AI reflektif pribadi berbasis web yang:
 
-* **Sadar akan identitas pengguna**, memahami kebiasaan, gaya berpikir, dan nilai-nilai yang dimiliki.
-* **Beroperasi sepenuhnya secara lokal**, menjaga privasi total tanpa backend atau cloud sync.
-* **Bertumbuh seiring waktu** melalui memori yang dipilih dan disimpan oleh pengguna sendiri.
-* **Dapat dipercaya sebagai refleksi digital diri sendiri**, bukan sekadar alat bantu sesaat.
+* **Mengerti siapa kamu dan gaya hidupmu** secara kontekstual dan berkesinambungan.
+* **Beroperasi sepenuhnya di perangkat pengguna**, tanpa cloud, tanpa backend.
+* **Tumbuh dari percakapan nyata**, menyimpan hal-hal penting secara sadar.
+* **Dapat digunakan offline**, fleksibel, ringan, dan dapat diakses dari mana saja via browser.
 
 ---
 
 ## 3. Misi
 
-* Menciptakan aplikasi AI pribadi yang **berbasis file, terbuka, dan mudah dimodifikasi**.
-* Memisahkan antara **global context** dan **session context** agar sistem mudah dikelola dan efisien.
-* Memberikan kontrol penuh kepada pengguna: dari API key, gaya komunikasi, sampai memori AI.
-* Mendorong AI tidak hanya memberikan jawaban, tapi juga merefleksikan pemikiran user dari waktu ke waktu.
+* Menyediakan aplikasi **PWA yang ringan dan portabel**, yang bisa dijalankan bahkan di perangkat berspesifikasi rendah.
+* Mengandalkan **IndexedDB** sebagai penyimpanan memori dan percakapan.
+* Memberikan kontrol penuh pada pengguna untuk mengelola persona, ingatan, dan gaya komunikasi AI.
+* Menyusun format interaksi dengan struktur **JSON yang jelas**, dan dikirim ke **Gemini API** menggunakan **API key pribadi dari user**.
 
 ---
 
 ## 4. Deskripsi Umum
 
-**SERA** adalah AI partner yang kamu bangun, bukan yang dibuat oleh korporasi.
-Aplikasi ini dijalankan secara **lokal** di perangkat pengguna (mobile Flutter app), dengan AI diproses melalui **Gemini API** menggunakan **API key pribadi dari Google AI Studio**.
+**SERA** adalah aplikasi berbasis web yang bisa diakses dari browser sebagai **Progressive Web App (PWA)**.
+Seluruh percakapan, memori, dan konfigurasi disimpan secara **lokal menggunakan IndexedDB**.
+Tidak ada server tengah. Tidak ada tracking. Tidak ada data yang dikirim selain ke Gemini API (Google AI) dengan **API key yang disediakan user sendiri**.
 
-Seluruh data, termasuk **memori jangka panjang**, **persona pengguna**, dan **riwayat interaksi**, disimpan dalam file JSON yang transparan, dapat diedit, dan dibaca langsung. Tidak ada pengiriman data ke server lain.
-
-SERA mendukung **multi-session chat**, dan setiap sesi mengandung **snapshot lengkap dari konteks user**, yang memungkinkan AI menjawab dengan relevansi personal tinggi.
+SERA hadir sebagai **AI partner pribadi** yang dapat digunakan untuk jurnal harian, eksplorasi ide, pembelajaran teknis, atau bahkan refleksi mental dan emosional.
 
 ---
 
-## 5. Nilai Utama
+## 5. Nilai Inti
 
-* **Self-Owned**: SERA bukan AI untuk semua orang, tapi AI untuk kamu secara personal.
-* **Local First**: Tidak tergantung cloud, tidak ada backend tersembunyi.
-* **Fully Transparent**: Semua data dalam file terbuka (JSON).
-* **Extensible**: Bisa ditambah fitur dan format sesuai kebutuhan.
+* **Privasi Total**: Tidak ada backend. Data tidak keluar dari perangkat kecuali ke API Gemini.
+* **Kedaulatan Data**: Kamu bisa baca, ubah, dan ekspor semua datamu.
+* **Ringan dan Universal**: Cuma butuh browser modern untuk jalan.
+* **Konteks Kaya**: AI punya memori jangka panjang dan mengenali dirimu secara konsisten.
 
 ---
 
 ## 6. Struktur Data
 
-### 🔹 `global_context.json`
+Struktur tetap berdasarkan dua entitas utama:
 
-Berisi informasi tetap dan shared antar semua sesi:
+### 🔹 Global Context (`global_context`)
+
+Disimpan di `IndexedDB`, berisi:
+
+* Nama AI dan user
+* Long-term memory (ingatan sadar)
+* Saved info seperti persona dan nilai
+* Lokasi pengguna (jika tersedia)
+* Safety settings
+
+Contoh:
 
 ```json
 {
+  "id": "default",
   "ai_name": "SERA",
   "user_name": "Prince",
   "long_term_memory": {
@@ -66,20 +75,13 @@ Berisi informasi tetap dan shared antar semua sesi:
       {
         "memory_saved_at": "2025-07-13T09:00:00+07:00",
         "memory_content": "Prince tidak suka menggunakan Android Studio karena berat. Lebih memilih Flutter dengan setup ringan."
-      },
-      {
-        "memory_saved_at": "2025-07-12T20:30:00+07:00",
-        "memory_content": "Sedang membuat AI pribadi tanpa backend, menggunakan Gemini API dan file JSON sebagai memori lokal."
       }
     ]
   },
   "saved_info": {
     "info": [
       "Persona AI: Teduh, bijaksana, tidak kaku, bukan kekanakan.",
-      "Persona User: Tech artisan, fokus efisiensi dan kontrol penuh.",
-      "Project Fokus: Pai Code (AI CLI assistant lokal).",
-      "Gaya Komunikasi: kasual, to the point, tanpa simbol aneh.",
-      "Prinsip: semua harus jalan offline sebisa mungkin."
+      "Persona User: Tech artisan, fokus efisiensi dan kontrol penuh."
     ]
   },
   "user_location": "Yogyakarta",
@@ -89,93 +91,125 @@ Berisi informasi tetap dan shared antar semua sesi:
 
 ---
 
-### 🔹 `session_001.json`
+### 🔹 Session Context (`sessions`)
 
-File session penuh, mengandung snapshot dari `global_context` + histori percakapan dan prompt terakhir:
+Berisi snapshot dari sesi individual yang menyertakan global context + interaksi.
+
+Contoh:
 
 ```json
 {
+  "id": "session_001",
   "date_time": "2025-07-14T17:45:00+07:00",
   "ai_name": "SERA",
   "user_name": "Prince",
-  "long_term_memory": {...},
-  "saved_info": {...},
+  "long_term_memory": { ... },
+  "saved_info": { ... },
   "user_location": "Yogyakarta",
   "safety_settings": "block_none",
   "previous_interactions": [
     {
       "input": "Apa pentingnya audit sistem operasi?",
       "response": "Audit sistem operasi penting untuk mengevaluasi keamanan, integritas sistem, dan konfigurasi yang rentan."
-    },
-    {
-      "input": "Apa saja komponen yang diperiksa dalam audit OS?",
-      "response": "Biasanya termasuk kontrol akses, konfigurasi file system, kernel settings, dan service yang berjalan."
-    },
-    {
-      "input": "Sekarang jelaskan audit database.",
-      "response": "Audit database melibatkan peninjauan izin user, aktivitas query, log transaksi, dan integritas skema data."
     }
   ],
-  "current_input": "Tolong buatkan ringkasan audit OS dan audit database dalam satu kalimat yang padat dan teknis."
+  "current_input": "Tolong buatkan ringkasan audit OS dan audit database dalam satu kalimat."
 }
 ```
 
 ---
 
-## 7. Alur Sistem
+## 7. Arsitektur Aplikasi
 
-### Langkah Interaksi:
-
-1. **Load** `global_context.json`
-2. **Generate** `session_XXX.json` baru → copy global context + tanggal + kosongkan riwayat
-3. **User Input** → ditulis ke `current_input`
-4. **Gemini API** dipanggil dengan format JSON penuh dari sesi
-5. **Response** disimpan ke `previous_interactions`, `current_input` dikosongkan
-6. (Opsional) user klik **"Ingat"** → response ditambah ke `long_term_memory` di `global_context`
-
----
-
-## 8. Use Case
-
-* **AI Refleksi Harian**: Catat pemikiran dan refleksi harian yang bisa direspon dan dikenang oleh SERA.
-* **Journal AI**: Simpan percakapan sebagai sesi terarsip.
-* **Asisten Belajar**: Simpan ringkasan materi, hasil diskusi, dan pelajaran penting.
-* **AI Konsisten**: Gunakan satu persona AI yang konsisten antar sesi, tidak berubah-ubah seperti chatbot cloud.
+```
+/sera-pwa/
+├── index.html              ← Entry point
+├── styles.css              ← Styling
+├── app.js                  ← Interaksi UI utama
+├── db.js                   ← Handler IndexedDB
+├── context_builder.js      ← Membentuk prompt JSON
+├── api.js                  ← Pengiriman ke Gemini API
+├── key_manager.js          ← Menyimpan API key lokal
+└── service-worker.js       ← Offline support
+```
 
 ---
 
-## 9. Teknologi yang Digunakan
+## 8. Teknologi yang Digunakan
 
-| Komponen        | Teknologi                      |
-| --------------- | ------------------------------ |
-| UI Mobile       | Flutter                        |
-| Bahasa          | Dart                           |
-| Penyimpanan     | JSON (file system lokal)       |
-| Akses File      | `path_provider`, `dart:io`     |
-| Penyimpanan Key | `shared_preferences`           |
-| Backend AI      | Gemini API (user-supplied key) |
-| Mode AI         | `model: gemini-pro`            |
-| Platform        | Android (awal), iOS (opsional) |
-
----
-
-## 10. Privasi
-
-* **Tidak ada server atau cloud** yang menyimpan data user.
-* **User wajib memasukkan API key pribadi** dari Google AI Studio.
-* Seluruh percakapan, memori, dan persona hanya tersimpan secara lokal di perangkat pengguna.
-* Format file bisa diekspor, dibackup, atau dihapus langsung oleh user.
+| Komponen         | Teknologi                      |
+| ---------------- | ------------------------------ |
+| UI/Frontend      | HTML, CSS, JavaScript          |
+| Framework        | Vanilla JS / Optional: Svelte  |
+| Storage Lokal    | IndexedDB (via wrapper `idb`)  |
+| Offline Support  | Service Worker (PWA)           |
+| LLM Backend      | Gemini API                     |
+| API Key Handling | `localStorage` / `IndexedDB`   |
+| Hosting          | Static Web (GitHub Pages, dll) |
 
 ---
 
-## 11. Penutup
+## 9. Fitur Utama
 
-SERA tidak dibuat untuk semua orang.
-Ia dibuat untuk mereka yang ingin **memahami diri sendiri lebih dalam**, yang ingin **memiliki partner AI yang tidak sekadar cerdas**, tapi **selaras secara nilai, gaya hidup, dan arah hidup**.
+* **Input API Key Manual** (sekali input, disimpan lokal)
+* **Chat berbasis konteks penuh**
+* **Memori jangka panjang yang bisa ditambah**
+* **Riwayat interaksi tersimpan per sesi**
+* **Ekspor dan impor sesi atau memori**
+* **Mode offline (tanpa AI) untuk journaling**
+* **Rekonstruksi prompt ke Gemini berdasarkan JSON context**
 
-Ia adalah **AI yang kamu bentuk sendiri**, tumbuh dari percakapanmu, mencatat pikiran-pikiranmu, dan membantu kamu mengenali dirimu seiring waktu.
+---
 
-> *"SERA is your mirror, your mind's sparring partner, and your digital echo."*
+## 10. Alur Penggunaan
+
+1. User buka app di browser
+2. Masukkan API Key
+3. Aplikasi memuat global context dari IndexedDB
+4. Sesi baru dibuat dari snapshot global context
+5. Input dikirim ke Gemini API dalam format JSON
+6. Response disimpan ke histori interaksi
+7. User bisa klik “Ingat” → disimpan ke long term memory
+8. Semua data tersimpan di IndexedDB secara otomatis
+
+---
+
+## 11. Export / Backup
+
+* Semua data dapat di-export ke file `.json` untuk backup atau pindah device
+* Bisa juga di-*import* kembali ke IndexedDB
+
+---
+
+## 12. Roadmap
+
+* [ ] Struktur awal global/session
+* [ ] IndexedDB wrapper
+* [ ] Halaman input API Key
+* [ ] UI chat sederhana
+* [ ] Prompt builder untuk Gemini
+* [ ] Tombol “Ingat ke memori”
+* [ ] Export/Import memori
+* [ ] Service worker full offline mode
+
+---
+
+## 13. Lisensi dan Filosofi
+
+* **Sumber terbuka dan bisa di-fork**
+* **Tidak ada tracking pengguna**
+* **Tidak menyimpan data user di luar device**
+* **Dirancang untuk user yang sadar privasi dan pengontrol penuh sistem**
+
+---
+
+## 14. Penutup
+
+**SERA PWA** adalah langkah konkret untuk membangun AI pribadi yang benar-benar **milikmu**.
+Tanpa server, tanpa vendor lock-in, tanpa kehilangan data.
+Semua yang kamu tulis, ingat, dan percakapan yang kamu lakukan, akan jadi bagian dari kesadaran AI-mu sendiri.
+
+> *"Kamu tidak lagi bicara ke AI, kamu sedang berbicara pada cerminan digital dirimu."*
 
 ---
 
