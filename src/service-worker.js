@@ -1,9 +1,11 @@
-const CACHE_NAME = 'seraa-cache-v2'; 
+// File: src/service-worker.js
+
+const CACHE_NAME = 'seraa-cache-v3'; // Version bump to trigger re-caching
 const URLS_TO_CACHE = [
-    // Root and entry points
+    // Root of our app scope is now /src/
     '/',
-    '/src/index.html',
-    '/src/app.html',
+    '/index.html',
+    '/app.html',
 
     // Styles
     '/assets/styles/styles.css',
