@@ -1,69 +1,61 @@
-# **SERA – Self Reflection Agentic AI (PWA Edition)**
+# **SERA – Self Reflection Agentic AI**
 
-> *"Bukan sekadar AI pintar. Ini adalah cerminan dirimu, yang tumbuh seiring waktu."*
+*A privacy-first personal AI designed to reflect you.*
 
 ---
 
-## 1. Judul Proyek
+## 1. Project Title
 
 **SERA – Self Reflection Agentic AI**
 
 ---
 
-## 2. Visi
+## 2. Vision
 
-Membangun AI reflektif pribadi berbasis web yang:
+To create a self-hosted personal AI agent that:
 
-* **Mengerti siapa kamu dan gaya hidupmu** secara kontekstual dan berkesinambungan.
-* **Beroperasi sepenuhnya di perangkat pengguna**, tanpa cloud, tanpa backend.
-* **Tumbuh dari percakapan nyata**, menyimpan hal-hal penting secara sadar.
-* **Dapat digunakan offline**, fleksibel, ringan, dan dapat diakses dari mana saja via browser.
-
----
-
-## 3. Misi
-
-* Menyediakan aplikasi **PWA yang ringan dan portabel**, yang bisa dijalankan bahkan di perangkat berspesifikasi rendah.
-* Mengandalkan **IndexedDB** sebagai penyimpanan memori dan percakapan.
-* Memberikan kontrol penuh pada pengguna untuk mengelola persona, ingatan, dan gaya komunikasi AI.
-* Menyusun format interaksi dengan struktur **JSON yang jelas**, dan dikirim ke **Gemini API** menggunakan **API key pribadi dari user**.
+* Understands **who you are**, how you speak, and what you care about.
+* **Runs entirely on-device** using modern web technologies (PWA).
+* **Remembers what matters**, through user-selected memory.
+* Becomes a **self-reflective companion**, not just a one-off assistant.
 
 ---
 
-## 4. Deskripsi Umum
+## 3. Mission
 
-**SERA** adalah aplikasi berbasis web yang bisa diakses dari browser sebagai **Progressive Web App (PWA)**.
-Seluruh percakapan, memori, dan konfigurasi disimpan secara **lokal menggunakan IndexedDB**.
-Tidak ada server tengah. Tidak ada tracking. Tidak ada data yang dikirim selain ke Gemini API (Google AI) dengan **API key yang disediakan user sendiri**.
-
-SERA hadir sebagai **AI partner pribadi** yang dapat digunakan untuk jurnal harian, eksplorasi ide, pembelajaran teknis, atau bahkan refleksi mental dan emosional.
-
----
-
-## 5. Nilai Inti
-
-* **Privasi Total**: Tidak ada backend. Data tidak keluar dari perangkat kecuali ke API Gemini.
-* **Kedaulatan Data**: Kamu bisa baca, ubah, dan ekspor semua datamu.
-* **Ringan dan Universal**: Cuma butuh browser modern untuk jalan.
-* **Konteks Kaya**: AI punya memori jangka panjang dan mengenali dirimu secara konsisten.
+* Build a lightweight **Progressive Web App (PWA)** that requires no backend.
+* Store all memory and user information locally using **IndexedDB**.
+* Give users full control over **persona, memory, and prompt structure**.
+* Format every prompt using a consistent and readable **structured JSON**, sent to **Gemini API** using a user-supplied API key.
 
 ---
 
-## 6. Struktur Data
+## 4. Description
 
-Struktur tetap berdasarkan dua entitas utama:
+**SERA** is a fully offline-first, browser-based AI assistant designed to live entirely on your device.
 
-### 🔹 Global Context (`global_context`)
+It offers a consistent, memory-aware, and deeply personal AI experience. You bring your own **Gemini API key** from [Google AI Studio](https://makersuite.google.com/), ensuring total data sovereignty and zero vendor lock-in.
 
-Disimpan di `IndexedDB`, berisi:
+All sessions, memories, and settings are stored **locally** using `IndexedDB` — no data is sent or stored anywhere else. Users can view, edit, or export all their data at any time.
 
-* Nama AI dan user
-* Long-term memory (ingatan sadar)
-* Saved info seperti persona dan nilai
-* Lokasi pengguna (jika tersedia)
-* Safety settings
+---
 
-Contoh:
+## 5. Core Values
+
+* **Privacy-first**: Nothing leaves the device except calls to the Gemini API.
+* **User-owned**: You decide what SERA knows and remembers.
+* **Lightweight & Universal**: Runs in any modern browser, installable on mobile or desktop.
+* **Human-aligned**: Designed to reflect your style, values, and growth over time.
+
+---
+
+## 6. JSON Structure
+
+SERA’s intelligence is built on two data models:
+
+### 🔹 `global_context`
+
+Shared memory and identity data:
 
 ```json
 {
@@ -74,28 +66,29 @@ Contoh:
     "memory": [
       {
         "memory_saved_at": "2025-07-13T09:00:00+07:00",
-        "memory_content": "Prince tidak suka menggunakan Android Studio karena berat. Lebih memilih Flutter dengan setup ringan."
+        "memory_content": "Prince avoids Android Studio due to performance. Prefers lightweight Flutter setups."
       }
     ]
   },
   "saved_info": {
     "info": [
-      "Persona AI: Teduh, bijaksana, tidak kaku, bukan kekanakan.",
-      "Persona User: Tech artisan, fokus efisiensi dan kontrol penuh."
+      "AI Persona: Calm, wise, non-childish.",
+      "User Persona: A tech artisan who values efficiency and full control.",
+      "Key Project: Pai Code (local CLI-based AI agent).",
+      "Communication Style: Casual, direct, no symbols.",
+      "Principle: Offline-first, minimal dependency on external systems."
     ]
   },
-  "user_location": "Yogyakarta",
+  "user_location": "City",
   "safety_settings": "block_none"
 }
 ```
 
 ---
 
-### 🔹 Session Context (`sessions`)
+### 🔹 `session_001`
 
-Berisi snapshot dari sesi individual yang menyertakan global context + interaksi.
-
-Contoh:
+A full snapshot of one chat session:
 
 ```json
 {
@@ -105,111 +98,168 @@ Contoh:
   "user_name": "Prince",
   "long_term_memory": { ... },
   "saved_info": { ... },
-  "user_location": "Yogyakarta",
+  "user_location": "City",
   "safety_settings": "block_none",
   "previous_interactions": [
     {
-      "input": "Apa pentingnya audit sistem operasi?",
-      "response": "Audit sistem operasi penting untuk mengevaluasi keamanan, integritas sistem, dan konfigurasi yang rentan."
+      "input": "What’s the importance of OS auditing?",
+      "response": "OS auditing helps evaluate system security, configuration vulnerabilities, and access integrity."
     }
   ],
-  "current_input": "Tolong buatkan ringkasan audit OS dan audit database dalam satu kalimat."
+  "current_input": "Summarize OS and database audit in one concise technical sentence."
 }
 ```
 
 ---
 
-## 7. Arsitektur Aplikasi
+## 7. Application Architecture
 
 ```
 /sera-pwa/
-├── index.html              ← Entry point
-├── styles.css              ← Styling
-├── app.js                  ← Interaksi UI utama
-├── db.js                   ← Handler IndexedDB
-├── context_builder.js      ← Membentuk prompt JSON
-├── api.js                  ← Pengiriman ke Gemini API
-├── key_manager.js          ← Menyimpan API key lokal
+├── index.html              ← Landing page
+├── app.html                ← Main app interface
+├── styles.css              ← Basic styling
+├── app.js                  ← UI control
+├── db.js                   ← IndexedDB interface
+├── context_builder.js      ← Build JSON for Gemini API
+├── api.js                  ← Request handler for Gemini
+├── key_manager.js          ← API key storage & handling
 └── service-worker.js       ← Offline support
 ```
 
 ---
 
-## 8. Teknologi yang Digunakan
+## 8. Technology Stack
 
-| Komponen         | Teknologi                      |
-| ---------------- | ------------------------------ |
-| UI/Frontend      | HTML, CSS, JavaScript          |
-| Framework        | Vanilla JS / Optional: Svelte  |
-| Storage Lokal    | IndexedDB (via wrapper `idb`)  |
-| Offline Support  | Service Worker (PWA)           |
-| LLM Backend      | Gemini API                     |
-| API Key Handling | `localStorage` / `IndexedDB`   |
-| Hosting          | Static Web (GitHub Pages, dll) |
-
----
-
-## 9. Fitur Utama
-
-* **Input API Key Manual** (sekali input, disimpan lokal)
-* **Chat berbasis konteks penuh**
-* **Memori jangka panjang yang bisa ditambah**
-* **Riwayat interaksi tersimpan per sesi**
-* **Ekspor dan impor sesi atau memori**
-* **Mode offline (tanpa AI) untuk journaling**
-* **Rekonstruksi prompt ke Gemini berdasarkan JSON context**
+| Component          | Technology                         |
+| ------------------ | ---------------------------------- |
+| UI/Frontend        | HTML, CSS, JavaScript              |
+| Optional Framework | Vanilla JS / Svelte                |
+| Local Storage      | IndexedDB (`idb` wrapper optional) |
+| Offline Support    | Service Worker (PWA)               |
+| AI API             | Gemini API (user-supplied key)     |
+| Device Support     | Cross-platform (installable)       |
+| Hosting            | Static (e.g. GitHub Pages)         |
 
 ---
 
-## 10. Alur Penggunaan
+## 9. Features
 
-1. User buka app di browser
-2. Masukkan API Key
-3. Aplikasi memuat global context dari IndexedDB
-4. Sesi baru dibuat dari snapshot global context
-5. Input dikirim ke Gemini API dalam format JSON
-6. Response disimpan ke histori interaksi
-7. User bisa klik “Ingat” → disimpan ke long term memory
-8. Semua data tersimpan di IndexedDB secara otomatis
-
----
-
-## 11. Export / Backup
-
-* Semua data dapat di-export ke file `.json` untuk backup atau pindah device
-* Bisa juga di-*import* kembali ke IndexedDB
+* Manual **Gemini API Key** input (stored locally).
+* **Global context** loading (persona, memory).
+* **Per-session logs** with prompt + response history.
+* **Long-term memory** you choose to remember.
+* **Offline mode** for journaling or reviewing sessions.
+* **Export / import data** as JSON.
+* Lightweight UI with minimal dependencies.
 
 ---
 
-## 12. Roadmap
+## 10. Prompt Structure
 
-* [ ] Struktur awal global/session
-* [ ] IndexedDB wrapper
-* [ ] Halaman input API Key
-* [ ] UI chat sederhana
-* [ ] Prompt builder untuk Gemini
-* [ ] Tombol “Ingat ke memori”
-* [ ] Export/Import memori
-* [ ] Service worker full offline mode
+Before sending a request to Gemini, session data is converted into a structured prompt:
+
+```
+AI Name: SERA  
+User Name: Prince  
+Location: City  
+
+Saved Info:  
+AI Persona is calm, wise, non-childish.  
+User Persona is a perfectionist and aesthetic programmer who values control and offline-first tools.  
+
+Long-Term Memory:  
+- 2025-07-13: Prince avoids Android Studio due to performance concerns and prefers lightweight Flutter setups.  
+- 2025-07-12: Prince is building a personal AI without backend, powered by Gemini API and local memory using JSON files.  
+
+History:  
+User: Why audit OS?  
+AI: OS auditing helps evaluate system security, configuration vulnerabilities, and access integrity.  
+User: Now audit database.  
+AI: Database audit includes reviewing user permissions, query activities, transaction logs, and schema integrity.  
+User: Summarize both in one sentence.
+
+```
+
+This format is generated by the prompt builder (`context_builder.js`) using current session and global data.
 
 ---
 
-## 13. Lisensi dan Filosofi
+## 11. Installation Flow (PWA)
 
-* **Sumber terbuka dan bisa di-fork**
-* **Tidak ada tracking pengguna**
-* **Tidak menyimpan data user di luar device**
-* **Dirancang untuk user yang sadar privasi dan pengontrol penuh sistem**
+SERA includes a clean onboarding flow:
+
+| Mode              | Behavior                                                         |
+| ----------------- | ---------------------------------------------------------------- |
+| **Not installed** | Show landing page with name, intro text, and **Install** button. |
+| **Installed**     | Auto-redirect to full application UI (chat, memory, etc).        |
+
+Detection is handled via:
+
+```js
+window.matchMedia('(display-mode: standalone)').matches
+```
+
+The `Install` prompt is shown via `beforeinstallprompt`.
 
 ---
 
-## 14. Penutup
+## 12. Privacy & Security
 
-**SERA PWA** adalah langkah konkret untuk membangun AI pribadi yang benar-benar **milikmu**.
-Tanpa server, tanpa vendor lock-in, tanpa kehilangan data.
-Semua yang kamu tulis, ingat, dan percakapan yang kamu lakukan, akan jadi bagian dari kesadaran AI-mu sendiri.
+* **No backend**. All data stays in the browser’s IndexedDB.
+* **User must supply their own API key** from [Google AI Studio](https://makersuite.google.com/).
+* No third-party analytics, no tracking, no cookies.
+* Users can **export and remove** all their data at any time.
 
-> *"Kamu tidak lagi bicara ke AI, kamu sedang berbicara pada cerminan digital dirimu."*
+---
+
+## 13. Roadmap
+
+* [x] JSON context structure design
+* [x] IndexedDB store structure
+* [x] Landing page + install flow
+* [ ] Prompt builder module
+* [ ] API key entry and validation
+* [ ] Chat UI
+* [ ] Save to memory button
+* [ ] Session export/import
+* [ ] Session tag system (future)
+
+---
+
+## 14. Philosophy & License
+
+> “You don’t use this AI. You grow it.”
+
+SERA is designed for people who don’t want a mass-market chatbot. It’s made for those who want:
+
+* A personal AI with long-term memory
+* Local-first and offline capabilities
+* Full transparency and control
+
+**License:** MIT (or custom OSS privacy-focused license, TBD)
+
+---
+
+## 15. Contributing
+
+Contributions are welcome. You can help by:
+
+* Improving UI/UX
+* Expanding the memory system
+* Translating the interface
+* Writing docs or tutorials
+
+Just open an issue or submit a pull request.
+
+---
+
+## 16. Final Words
+
+**SERA** isn’t here to answer every question in the world.
+It’s here to help you answer your own — with time, memory, and clarity.
+
+> *SERA is your mirror, your second mind, and your quiet digital echo.*
 
 ---
 
