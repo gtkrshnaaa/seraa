@@ -1,20 +1,26 @@
 // File: src/app.js
 
-import { initDB, getGlobalContext, saveGlobalContext, upsertSession, getLatestSession } from './db.js';
+import { initDB, getAllSessions, getGlobalContext, saveGlobalContext, upsertSession } from './db.js';
 import { getApiKey } from './key_manager.js';
 import { buildPrompt } from './context_builder.js';
 import { callGemini } from './api.js';
 import { initSettings, openSettings } from './settings.js';
+import { initSidebar, updateSidebar } from './sidebar.js';
 
-let currentSession = null;
+// --- Global State ---
+let activeSession = null;
+let allSessions = [];
 
+// --- DOM Elements ---
 const chatWindow = document.getElementById('chat-window');
 const chatForm = document.getElementById('chat-form');
 const chatInput = document.getElementById('chat-input');
-const settingsIcon = document.getElementById('settings-icon');
+const sessionTitle = document.getElementById('session-title');
 const newChatButton = document.getElementById('new-chat-button');
 const rememberButton = document.getElementById('remember-button');
+const settingsIcon = document.getElementById('settings-icon');
 
+// --- Main Application Logic ---
 document.addEventListener('DOMContentLoaded', main);
 
 async function main() {
@@ -29,54 +35,99 @@ async function main() {
             console.error('Service Worker registration failed:', error);
         }
     }
+
+    allSessions = await getAllSessions();
     
-    await loadOrCreateSession();
+    let sessionToLoad = getLatestSession(allSessions);
+    if (!sessionToLoad) {
+        sessionToLoad = await createNewSession();
+    }
+    
+    initSidebar(allSessions, sessionToLoad.id, {
+        onSessionSelect: loadSessionById,
+        onSessionDelete: handleSessionDeleted,
+        onSessionUpdate: (session) => {
+            if (session.id === activeSession.id) {
+                sessionTitle.textContent = session.name;
+            }
+        }
+    });
+
+    loadSession(sessionToLoad);
 
     if (!getApiKey()) {
         openSettings();
     }
-
+    
+    // --- Event Listeners ---
     settingsIcon.addEventListener('click', openSettings);
     chatForm.addEventListener('submit', handleChatSubmit);
-    newChatButton.addEventListener('click', startNewSession);
+    newChatButton.addEventListener('click', handleNewChat);
     rememberButton.addEventListener('click', handleRemember);
-
     chatInput.addEventListener('input', () => {
         chatInput.style.height = 'auto';
         chatInput.style.height = `${chatInput.scrollHeight}px`;
     });
 }
 
-async function loadOrCreateSession() {
-    currentSession = await getLatestSession();
-    if (!currentSession) {
-        currentSession = createNewSessionObject();
-    }
-    renderSessionHistory();
+// --- Session Management ---
+
+function getLatestSession(sessions) {
+    if (!sessions || sessions.length === 0) return null;
+    return sessions.reduce((latest, current) => new Date(latest.date_time) > new Date(current.date_time) ? latest : current);
 }
 
-function renderSessionHistory() {
+async function createNewSession() {
+    const newSession = {
+        name: `Chat on ${new Date().toLocaleString()}`,
+        date_time: new Date().toISOString(),
+        is_pinned: false,
+        previous_interactions: []
+    };
+    newSession.id = await upsertSession(newSession);
+    allSessions.push(newSession);
+    return newSession;
+}
+
+async function handleNewChat() {
+    const newSession = await createNewSession();
+    loadSession(newSession);
+    updateSidebar(allSessions, newSession.id);
+}
+
+function loadSession(session) {
+    activeSession = session;
     chatWindow.innerHTML = '';
-    if (currentSession && currentSession.previous_interactions) {
-        currentSession.previous_interactions.forEach(interaction => {
+    sessionTitle.textContent = session.name;
+    if (session.previous_interactions) {
+        session.previous_interactions.forEach(interaction => {
             addMessageToUI(interaction.input, 'user');
             addMessageToUI(interaction.response, 'ai');
         });
     }
-}
-
-function createNewSessionObject() {
-    return {
-        date_time: new Date().toISOString(),
-        previous_interactions: []
-    };
-}
-
-function startNewSession() {
-    currentSession = createNewSessionObject();
-    renderSessionHistory();
     chatInput.focus();
 }
+
+async function loadSessionById(sessionId) {
+    const session = allSessions.find(s => s.id === sessionId);
+    if (session) {
+        loadSession(session);
+    }
+}
+
+async function handleSessionDeleted(deletedId) {
+    allSessions = allSessions.filter(s => s.id !== deletedId);
+    if (activeSession.id === deletedId) {
+        let sessionToLoad = getLatestSession(allSessions);
+        if (!sessionToLoad) {
+            sessionToLoad = await createNewSession();
+        }
+        loadSession(sessionToLoad);
+    }
+    updateSidebar(allSessions, activeSession.id);
+}
+
+// --- Chat & Memory Logic ---
 
 async function handleChatSubmit(e) {
     e.preventDefault();
@@ -95,46 +146,46 @@ async function handleChatSubmit(e) {
     chatInput.style.height = 'auto';
 
     const loadingIndicator = addMessageToUI('...', 'ai');
-
+    
     const globalContext = await getGlobalContext();
-    const sessionData = {
-        ...currentSession,
-        current_input: userInput
-    };
-
+    const sessionData = { ...activeSession, current_input: userInput };
     const prompt = buildPrompt(globalContext, sessionData);
     const aiResponse = await callGemini(prompt, apiKey, globalContext.safety_settings);
 
     loadingIndicator.textContent = aiResponse;
 
-    currentSession.previous_interactions.push({
+    activeSession.previous_interactions.push({
         input: userInput,
         response: aiResponse
     });
-
-    currentSession.id = await upsertSession(currentSession);
+    
+    // Auto-rename session if it's the first message
+    if (activeSession.previous_interactions.length === 1) {
+        const renamePrompt = `Based on this initial user prompt, create a very short title for this conversation (maximum 4-5 words). User Prompt: "${userInput}"`;
+        activeSession.name = await callGemini(renamePrompt, apiKey, "BLOCK_NONE");
+        sessionTitle.textContent = activeSession.name;
+    }
+    
+    await upsertSession(activeSession);
+    updateSidebar(allSessions, activeSession.id);
 }
 
 async function handleRemember() {
-    if (!currentSession || currentSession.previous_interactions.length === 0) {
+    if (!activeSession || activeSession.previous_interactions.length === 0) {
         alert("There's nothing to remember yet.");
         return;
     }
-
-    rememberButton.textContent = 'Remembering...';
+    
+    rememberButton.textContent = '🧠 Remembering...';
     rememberButton.disabled = true;
 
     try {
         const apiKey = getApiKey();
         const globalContext = await getGlobalContext();
-        const conversationText = currentSession.previous_interactions
-            .map(i => `User: ${i.input}\nAI: ${i.response}`)
-            .join('\n\n');
-        
+        const conversationText = activeSession.previous_interactions.map(i => `User: ${i.input}\nAI: ${i.response}`).join('\n\n');
         const summarizationPrompt = `Based on the following conversation, please provide a concise, one-sentence summary of the key insight or takeaway. Frame it from the user's perspective (e.g., "I learned that..." or "I realized...").\n\nConversation:\n---\n${conversationText}`;
-
         const summary = await callGemini(summarizationPrompt, apiKey, globalContext.safety_settings);
-
+        
         globalContext.long_term_memory.memory.push({
             memory_saved_at: new Date().toISOString(),
             memory_content: summary
@@ -142,12 +193,11 @@ async function handleRemember() {
 
         await saveGlobalContext(globalContext);
         alert(`Memory saved:\n"${summary}"`);
-
     } catch (error) {
         console.error("Failed to remember conversation:", error);
         alert("Sorry, there was an error trying to remember this conversation.");
     } finally {
-        rememberButton.textContent = 'Remember';
+        rememberButton.textContent = '🧠 Remember';
         rememberButton.disabled = false;
     }
 }

@@ -16,26 +16,104 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    overflow: hidden;
 }
 
-.container.centered {
-    text-align: center;
-    max-width: 500px;
-    padding: 2rem;
+#main-layout {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
 }
 
-.tagline {
-    color: var(--secondary-text);
-    margin-bottom: 2rem;
+#sidebar {
+    width: 280px;
+    background-color: var(--background);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+#sidebar-header {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+#sidebar-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+#session-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+#session-list li {
+    padding: 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#session-list li:hover {
+    background-color: var(--surface);
+}
+
+#session-list li.active {
+    background-color: var(--accent-color);
+    color: #111;
+}
+
+.session-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 1rem;
+}
+
+.session-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.session-actions button {
+    background: none;
+    border: none;
+    color: var(--primary-text);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.2rem;
+}
+
+#session-list li.active .session-actions button {
+    color: #111;
+}
+
+#session-list li .session-actions {
+    visibility: hidden;
+}
+#session-list li:hover .session-actions,
+#session-list li.active .session-actions {
+    visibility: visible;
 }
 
 #app-container {
+    flex-grow: 1;
     width: 100%;
-    max-width: 800px;
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background-color: var(--background);
+    background-color: #202020; /* Slightly different background for chat area */
 }
 
 header {
@@ -46,13 +124,12 @@ header {
     align-items: center;
 }
 
-header h1 {
-    margin: 0;
+#session-title {
     font-size: 1.2rem;
-}
-
-#settings-icon {
-    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 40vw;
 }
 
 main#chat-window {
@@ -87,6 +164,7 @@ main#chat-window {
 footer {
     padding: 1rem;
     border-top: 1px solid var(--border-color);
+    background-color: #202020;
 }
 
 #chat-form {
@@ -134,8 +212,6 @@ button {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     width: 90%;
-    max-width: 400px;
-    text-align: center;
 }
 
 .settings-panel {
@@ -156,6 +232,11 @@ button {
     padding-top: 1.5rem;
 }
 
+.settings-section:first-of-type {
+    border-top: none;
+    padding-top: 0;
+}
+
 .settings-section h3 {
     margin-top: 0;
     color: var(--secondary-text);
@@ -169,8 +250,9 @@ button {
 }
 
 .settings-panel input[type="text"],
-.settings-panel input[type="password"] {
-    width: calc(100% - 1.6rem);
+.settings-panel input[type="password"],
+.settings-panel select {
+    width: 100%;
     padding: 0.8rem;
     margin-bottom: 1rem;
     background-color: var(--background);
@@ -178,6 +260,7 @@ button {
     color: var(--primary-text);
     border-radius: 4px;
     font-size: 1rem;
+    box-sizing: border-box;
 }
 
 .item-list .item {
@@ -194,6 +277,7 @@ button {
 .item-list .item-content {
     flex-grow: 1;
     margin-right: 1rem;
+    word-break: break-word;
 }
 
 .item-list .delete-button {
@@ -206,6 +290,7 @@ button {
     cursor: pointer;
     font-weight: bold;
     padding: 0;
+    flex-shrink: 0;
 }
 
 .add-item-form {

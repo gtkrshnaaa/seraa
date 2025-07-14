@@ -7,24 +7,34 @@
     <link rel="stylesheet" href="assets/styles/styles.css">
 </head>
 <body>
-    <div id="app-container">
-        <header>
-            <h1>SERAA</h1>
-            <div class="header-actions">
-                <button id="remember-button" class="header-button" title="Summarize and Remember Conversation">🧠 Remember</button>
-                <button id="new-chat-button" class="header-button" title="Start a New Chat">✨ New Chat</button>
-                <div id="settings-icon" title="Settings">⚙️</div>
-            </div>
-        </header>
-        
-        <main id="chat-window"></main>
+    <div id="main-layout">
+        <aside id="sidebar">
+            <header id="sidebar-header">
+                <h2>Sessions</h2>
+                <button id="new-chat-button" class="header-button" title="Start a New Chat">✨ New</button>
+            </header>
+            <ul id="session-list">
+                </ul>
+        </aside>
 
-        <footer>
-            <form id="chat-form">
-                <textarea id="chat-input" placeholder="Start your reflection..." rows="1"></textarea>
-                <button type="submit">Send</button>
-            </form>
-        </footer>
+        <div id="app-container">
+            <header>
+                <h1 id="session-title">SERAA</h1>
+                <div class="header-actions">
+                    <button id="remember-button" class="header-button" title="Summarize and Remember Conversation">🧠 Remember</button>
+                    <div id="settings-icon" title="Settings">⚙️</div>
+                </div>
+            </header>
+            
+            <main id="chat-window"></main>
+
+            <footer>
+                <form id="chat-form">
+                    <textarea id="chat-input" placeholder="Start your reflection..." rows="1"></textarea>
+                    <button type="submit">Send</button>
+                </form>
+            </footer>
+        </div>
     </div>
 
     <div id="settings-modal" class="modal">
@@ -57,8 +67,7 @@
 
             <div class="settings-section">
                 <h3>Saved Info (Persona, Principles, etc.)</h3>
-                <div id="saved-info-list" class="item-list">
-                    </div>
+                <div id="saved-info-list" class="item-list"></div>
                 <form id="add-info-form" class="add-item-form">
                     <input type="text" id="add-info-input" placeholder="Add new info..." required>
                     <button type="submit">Add</button>
@@ -67,8 +76,7 @@
 
             <div class="settings-section">
                 <h3>Long-Term Memory</h3>
-                <div id="long-term-memory-list" class="item-list">
-                    </div>
+                <div id="long-term-memory-list" class="item-list"></div>
             </div>
 
             <button id="save-settings-button" class="button-primary">Save and Close</button>
