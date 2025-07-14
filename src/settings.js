@@ -15,6 +15,7 @@ const userNameInput = document.getElementById('user-name-input');
 const aiNameInput = document.getElementById('ai-name-input');
 const userLocationInput = document.getElementById('user-location-input');
 const apiKeyInput = document.getElementById('api-key-input');
+const safetySettingsSelect = document.getElementById('safety-settings-select');
 
 // Saved Info elements
 const savedInfoList = document.getElementById('saved-info-list');
@@ -36,6 +37,7 @@ async function loadSettings() {
     aiNameInput.value = currentContext.ai_name || '';
     userLocationInput.value = currentContext.user_location || '';
     apiKeyInput.value = apiKey || '';
+    safetySettingsSelect.value = currentContext.safety_settings || 'BLOCK_MEDIUM_AND_ABOVE';
 
     // Populate saved info
     renderSavedInfo();
@@ -48,15 +50,17 @@ async function loadSettings() {
  */
 function renderSavedInfo() {
     savedInfoList.innerHTML = '';
-    currentContext.saved_info.info.forEach((item, index) => {
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.innerHTML = `
-            <span class="item-content">${item}</span>
-            <button class="delete-button" data-index="${index}">&times;</button>
-        `;
-        savedInfoList.appendChild(div);
-    });
+    if (currentContext && currentContext.saved_info && currentContext.saved_info.info) {
+        currentContext.saved_info.info.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.innerHTML = `
+                <span class="item-content">${item}</span>
+                <button class="delete-button" data-index="${index}">&times;</button>
+            `;
+            savedInfoList.appendChild(div);
+        });
+    }
 }
 
 /**
@@ -64,15 +68,17 @@ function renderSavedInfo() {
  */
 function renderLongTermMemory() {
     longTermMemoryList.innerHTML = '';
-    currentContext.long_term_memory.memory.forEach((item, index) => {
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.innerHTML = `
-            <span class="item-content"><b>${new Date(item.memory_saved_at).toLocaleDateString()}:</b> ${item.memory_content}</span>
-            <button class="delete-button" data-index="${index}">&times;</button>
-        `;
-        longTermMemoryList.appendChild(div);
-    });
+    if (currentContext && currentContext.long_term_memory && currentContext.long_term_memory.memory) {
+        currentContext.long_term_memory.memory.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.innerHTML = `
+                <span class="item-content"><b>${new Date(item.memory_saved_at).toLocaleDateString()}:</b> ${item.memory_content}</span>
+                <button class="delete-button" data-index="${index}">&times;</button>
+            `;
+            longTermMemoryList.appendChild(div);
+        });
+    }
 }
 
 /**
@@ -83,6 +89,7 @@ async function saveSettings() {
     currentContext.user_name = userNameInput.value;
     currentContext.ai_name = aiNameInput.value;
     currentContext.user_location = userLocationInput.value;
+    currentContext.safety_settings = safetySettingsSelect.value;
     
     // Save API key separately in localStorage
     saveApiKey(apiKeyInput.value);
@@ -101,32 +108,29 @@ export function initSettings() {
     closeButton.onclick = () => settingsModal.style.display = 'none';
     saveButton.onclick = saveSettings;
 
-    // Event listener for adding new "saved info"
     addInfoForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const newInfo = addInfoInput.value.trim();
         if (newInfo) {
             currentContext.saved_info.info.push(newInfo);
             addInfoInput.value = '';
-            renderSavedInfo(); // Re-render the list
+            renderSavedInfo();
         }
     });
 
-    // Event listener for deleting "saved info"
     savedInfoList.addEventListener('click', (e) => {
         if (e.target.classList.contains('delete-button')) {
             const index = parseInt(e.target.dataset.index, 10);
             currentContext.saved_info.info.splice(index, 1);
-            renderSavedInfo(); // Re-render the list
+            renderSavedInfo();
         }
     });
 
-    // Event listener for deleting "long-term memory"
     longTermMemoryList.addEventListener('click', (e) => {
         if (e.target.classList.contains('delete-button')) {
             const index = parseInt(e.target.dataset.index, 10);
             currentContext.long_term_memory.memory.splice(index, 1);
-            renderLongTermMemory(); // Re-render the list
+            renderLongTermMemory();
         }
     });
 }

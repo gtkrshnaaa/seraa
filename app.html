@@ -45,6 +45,14 @@
 
                 <label for="api-key-input">Gemini API Key</label>
                 <input type="password" id="api-key-input" placeholder="Paste your key here">
+
+                <label for="safety-settings-select">Safety Level</label>
+                <select id="safety-settings-select">
+                    <option value="BLOCK_NONE">Block None (Lenient)</option>
+                    <option value="BLOCK_ONLY_HIGH">Block Only High</option>
+                    <option value="BLOCK_MEDIUM_AND_ABOVE">Block Medium & Above (Default)</option>
+                    <option value="BLOCK_LOW_AND_ABOVE">Block Low & Above (Strict)</option>
+                </select>
             </div>
 
             <div class="settings-section">

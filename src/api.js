@@ -1,6 +1,8 @@
+// File: src/api.js
+
 const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=";
 
-export async function callGemini(prompt, apiKey) {
+export async function callGemini(prompt, apiKey, safetyThreshold = 'BLOCK_NONE') {
     try {
         const response = await fetch(`${API_URL}${apiKey}`, {
             method: 'POST',
@@ -11,12 +13,11 @@ export async function callGemini(prompt, apiKey) {
                 contents: [{
                     parts: [{ text: prompt }]
                 }],
-                // Using the safety settings from your context design
                 safetySettings: [
-                    { "category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE" },
-                    { "category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE" },
-                    { "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE" },
-                    { "category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE" }
+                    { "category": "HARM_CATEGORY_HARASSMENT", "threshold": safetyThreshold },
+                    { "category": "HARM_CATEGORY_HATE_SPEECH", "threshold": safetyThreshold },
+                    { "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": safetyThreshold },
+                    { "category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": safetyThreshold }
                 ]
             }),
         });
@@ -27,6 +28,10 @@ export async function callGemini(prompt, apiKey) {
         }
 
         const data = await response.json();
+        
+        if (!data.candidates || data.candidates.length === 0) {
+            return "Response blocked due to safety settings. Adjust the level in Settings if needed.";
+        }
         return data.candidates[0].content.parts[0].text;
     } catch (error) {
         console.error("Error calling Gemini API:", error);
