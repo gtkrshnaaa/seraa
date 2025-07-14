@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SERAA</title>
-    <base href="/seraa/">
     <link rel="stylesheet" href="assets/styles/styles.css">
 </head>
 <body>
@@ -24,12 +23,43 @@
         </footer>
     </div>
 
-    <div id="api-key-modal" class="modal">
-        <div class="modal-content">
-            <h2>Enter Your Gemini API Key</h2>
-            <p>Your key is stored locally and never shared.</p>
-            <input type="password" id="api-key-input" placeholder="Paste your key here">
-            <button id="save-api-key-button">Save Key</button>
+    <div id="settings-modal" class="modal">
+        <div class="modal-content settings-panel">
+            <span class="close-button">&times;</span>
+            <h2>Settings</h2>
+
+            <div class="settings-section">
+                <h3>General</h3>
+                <label for="user-name-input">Your Name</label>
+                <input type="text" id="user-name-input" placeholder="e.g., Kiann">
+                
+                <label for="ai-name-input">AI's Name</label>
+                <input type="text" id="ai-name-input" placeholder="e.g., SERAA">
+
+                <label for="user-location-input">Your Location</label>
+                <input type="text" id="user-location-input" placeholder="e.g., Yogyakarta">
+
+                <label for="api-key-input">Gemini API Key</label>
+                <input type="password" id="api-key-input" placeholder="Paste your key here">
+            </div>
+
+            <div class="settings-section">
+                <h3>Saved Info (Persona, Principles, etc.)</h3>
+                <div id="saved-info-list" class="item-list">
+                    </div>
+                <form id="add-info-form" class="add-item-form">
+                    <input type="text" id="add-info-input" placeholder="Add new info..." required>
+                    <button type="submit">Add</button>
+                </form>
+            </div>
+
+            <div class="settings-section">
+                <h3>Long-Term Memory</h3>
+                <div id="long-term-memory-list" class="item-list">
+                    </div>
+            </div>
+
+            <button id="save-settings-button" class="button-primary">Save and Close</button>
         </div>
     </div>
     

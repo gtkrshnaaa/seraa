@@ -1,7 +1,10 @@
+// File: src/app.js
+
 import { initDB, getGlobalContext, saveSession } from './db.js';
-import { getApiKey, saveApiKey } from './key_manager.js';
+import { getApiKey } from './key_manager.js';
 import { buildPrompt } from './context_builder.js';
 import { callGemini } from './api.js';
+import { initSettings, openSettings } from './settings.js';
 
 document.addEventListener('DOMContentLoaded', main);
 
@@ -9,7 +12,10 @@ async function main() {
     // 1. Initialize Database
     await initDB();
 
-    // 2. Register Service Worker
+    // 2. Initialize Settings Panel (but don't show it yet)
+    initSettings();
+
+    // 3. Register Service Worker
     if ('serviceWorker' in navigator) {
         try {
             await navigator.serviceWorker.register('../service-worker.js');
@@ -19,30 +25,18 @@ async function main() {
         }
     }
 
-    // 3. Check for API Key
-    const apiKeyModal = document.getElementById('api-key-modal');
+    // 4. Check for API Key on first load
     if (!getApiKey()) {
-        apiKeyModal.style.display = 'flex';
+        openSettings(); // Open the full settings panel if no API key
     }
-
-    document.getElementById('save-api-key-button').addEventListener('click', () => {
-        const key = document.getElementById('api-key-input').value;
-        if (key) {
-            saveApiKey(key);
-            apiKeyModal.style.display = 'none';
-        }
-    });
 
     // UI Elements
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
-    const chatWindow = document.getElementById('chat-window');
+    const settingsIcon = document.getElementById('settings-icon');
 
-    // State management
-    let currentSession = {
-        date_time: new Date().toISOString(),
-        previous_interactions: []
-    };
+    // Open settings modal when icon is clicked
+    settingsIcon.addEventListener('click', openSettings);
 
     // Handle form submission
     chatForm.addEventListener('submit', async (e) => {
@@ -52,38 +46,29 @@ async function main() {
 
         const apiKey = getApiKey();
         if (!apiKey) {
+            // Re-open settings if API key is suddenly missing
+            openSettings();
             alert('Please set your Gemini API key in the settings.');
-            apiKeyModal.style.display = 'flex';
             return;
         }
 
-        // Display user message
         addMessageToUI(userInput, 'user');
         chatInput.value = '';
         chatInput.style.height = 'auto';
 
-        // Add loading indicator
         const loadingIndicator = addMessageToUI('...', 'ai');
 
-        // Prepare data for prompt
         const globalContext = await getGlobalContext();
+        
+        let currentSession = {
+            previous_interactions: [] // In a real app, you'd load this from db
+        };
         currentSession.current_input = userInput;
 
-        // Build the prompt and call API
         const prompt = buildPrompt(globalContext, currentSession);
         const aiResponse = await callGemini(prompt, apiKey);
 
-        // Update UI with AI response
         loadingIndicator.textContent = aiResponse;
-
-        // Update session history
-        currentSession.previous_interactions.push({
-            input: userInput,
-            response: aiResponse
-        });
-
-        // Save the session (optional for now, can be expanded)
-        // await saveSession(currentSession);
     });
     
     // Auto-resize textarea
@@ -99,6 +84,6 @@ function addMessageToUI(text, sender) {
     messageElement.classList.add('chat-message', `${sender}-message`);
     messageElement.textContent = text;
     chatWindow.appendChild(messageElement);
-    chatWindow.scrollTop = chatWindow.scrollHeight; // Auto-scroll to bottom
+    chatWindow.scrollTop = chatWindow.scrollHeight;
     return messageElement;
 }

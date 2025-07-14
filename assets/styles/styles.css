@@ -138,12 +138,101 @@ button {
     text-align: center;
 }
 
-.modal-content input {
-    width: calc(100% - 2rem);
+.settings-panel {
+    text-align: left;
+    max-width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.settings-panel h2 {
+    margin-top: 0;
+    text-align: center;
+}
+
+.settings-section {
+    margin-bottom: 2rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+}
+
+.settings-section h3 {
+    margin-top: 0;
+    color: var(--secondary-text);
+}
+
+.settings-panel label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--secondary-text);
+}
+
+.settings-panel input[type="text"],
+.settings-panel input[type="password"] {
+    width: calc(100% - 1.6rem);
     padding: 0.8rem;
-    margin: 1rem 0;
+    margin-bottom: 1rem;
     background-color: var(--background);
     border: 1px solid var(--border-color);
     color: var(--primary-text);
     border-radius: 4px;
+    font-size: 1rem;
+}
+
+.item-list .item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--background);
+    padding: 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.item-list .item-content {
+    flex-grow: 1;
+    margin-right: 1rem;
+}
+
+.item-list .delete-button {
+    background: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0;
+}
+
+.add-item-form {
+    display: flex;
+    margin-top: 1rem;
+}
+
+.add-item-form input {
+    flex-grow: 1;
+    margin-right: 0.5rem;
+}
+
+.button-primary {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    margin-top: 1rem;
+}
+
+.close-button {
+    color: var(--secondary-text);
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-button:hover {
+    color: var(--primary-text);
 }
