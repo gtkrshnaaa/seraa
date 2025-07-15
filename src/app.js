@@ -190,7 +190,7 @@ async function handleRemember() {
         return;
     }
 
-    rememberButton.innerHTML = '<i class="uil uil-brain"></i> Reflecting...';
+    rememberButton.innerHTML = 'Reflecting...';
     rememberButton.disabled = true;
 
     try {
@@ -227,7 +227,7 @@ Your reflection on the user:`;
         console.error("Failed to reflect on conversation:", error);
         alert("Sorry, there was an error trying to reflect on this conversation.");
     } finally {
-        rememberButton.innerHTML = '<i class="uil uil-save"></i> Remember';
+        rememberButton.innerHTML = 'Remember';
         rememberButton.disabled = false;
     }
 }
