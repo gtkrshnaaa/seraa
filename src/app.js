@@ -7,9 +7,11 @@ import { callGemini } from './api.js';
 import { initSettings, openSettings } from './settings.js';
 import { initSidebar, updateSidebar } from './sidebar.js';
 
+// --- Global State ---
 let activeSession = null;
 let allSessions = [];
 
+// --- DOM Elements ---
 const chatWindow = document.getElementById('chat-window');
 const chatForm = document.getElementById('chat-form');
 const chatInput = document.getElementById('chat-input');
@@ -21,6 +23,8 @@ const sidebar = document.getElementById('sidebar');
 const menuToggleButton = document.getElementById('menu-toggle-button');
 const overlay = document.getElementById('overlay');
 
+
+// --- Main Application Logic ---
 document.addEventListener('DOMContentLoaded', main);
 
 async function main() {
@@ -62,6 +66,7 @@ async function main() {
         openSettings();
     }
     
+    // --- Event Listeners ---
     settingsIcon.addEventListener('click', openSettings);
     chatForm.addEventListener('submit', handleChatSubmit);
     newChatButton.addEventListener('click', handleNewChat);
@@ -75,6 +80,7 @@ async function main() {
     });
 }
 
+// --- Responsive Sidebar Logic ---
 function toggleSidebar() {
     sidebar.classList.toggle('sidebar-visible');
     overlay.classList.toggle('visible');
@@ -84,6 +90,8 @@ function closeSidebar() {
     sidebar.classList.remove('sidebar-visible');
     overlay.classList.remove('visible');
 }
+
+// --- Session Management ---
 
 function getLatestSession(sessions) {
     if (!sessions || sessions.length === 0) return null;
@@ -141,6 +149,8 @@ async function handleSessionDeleted(deletedId) {
     updateSidebar(allSessions, activeSession.id);
 }
 
+// --- Chat & Memory Logic ---
+
 async function handleChatSubmit(e) {
     e.preventDefault();
     const userInput = chatInput.value.trim();
@@ -182,31 +192,51 @@ async function handleChatSubmit(e) {
 }
 
 async function handleRemember() {
-    if (!activeSession || activeSession.previous_interactions.length === 0) {
+    const interactions = activeSession.previous_interactions;
+    if (!interactions || interactions.length === 0) {
         alert("There's nothing to remember yet.");
         return;
     }
-    
-    rememberButton.textContent = 'Remembering...';
+
+    rememberButton.textContent = '🧠 Reflecting...';
     rememberButton.disabled = true;
 
     try {
         const apiKey = getApiKey();
         const globalContext = await getGlobalContext();
-        const conversationText = activeSession.previous_interactions.map(i => `User: ${i.input}\nAI: ${i.response}`).join('\n\n');
-        const summarizationPrompt = `Based on the following conversation, please provide a concise, one-sentence summary of the key insight or takeaway. Frame it from the user's perspective (e.g., "I learned that..." or "I realized...").\n\nConversation:\n---\n${conversationText}`;
-        const summary = await callGemini(summarizationPrompt, apiKey, globalContext.safety_settings);
         
-        globalContext.long_term_memory.memory.push({
+        // Take the last 10 interactions (or fewer if not available)
+        const recentInteractions = interactions.slice(-10);
+        const conversationExcerpt = recentInteractions
+            .map(i => `User: ${i.input}\nAI: ${i.response}`)
+            .join('\n\n');
+        
+        // The new, more reflective prompt
+        const reflectionPrompt = `You are an AI assistant named ${globalContext.ai_name}. Your user is ${globalContext.user_name}.
+Based *only* on the recent conversation excerpt below, formulate a single, insightful observation about the user or their current activity from your perspective as their AI companion.
+Start your response with "I've noticed that..." or "I understand now that..." or a similar reflective phrase. Be concise.
+
+---
+RECENT CONVERSATION:
+${conversationExcerpt}
+---
+
+Your reflection on the user:`;
+
+        const reflection = await callGemini(reflectionPrompt, apiKey, globalContext.safety_settings);
+        
+        // Save the new reflection to the correct memory store
+        globalContext.ai_long_term_memory.memory.push({
             memory_saved_at: new Date().toISOString(),
-            memory_content: summary
+            memory_content: reflection
         });
 
         await saveGlobalContext(globalContext);
-        alert(`Memory saved:\n"${summary}"`);
+        alert(`New reflection saved:\n"${reflection}"`);
+
     } catch (error) {
-        console.error("Failed to remember conversation:", error);
-        alert("Sorry, there was an error trying to remember this conversation.");
+        console.error("Failed to reflect on conversation:", error);
+        alert("Sorry, there was an error trying to reflect on this conversation.");
     } finally {
         rememberButton.textContent = 'Remember';
         rememberButton.disabled = false;

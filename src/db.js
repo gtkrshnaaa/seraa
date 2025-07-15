@@ -2,7 +2,7 @@
 import { openDB } from 'https://cdn.jsdelivr.net/npm/idb@7/build/index.min.js';
 
 const DB_NAME = 'SERAA_DB';
-const DB_VERSION = 2; // Version bump for schema change
+const DB_VERSION = 2;
 
 let db;
 
@@ -17,7 +17,6 @@ export async function initDB() {
             }
             if (oldVersion < 2) {
                 const sessionStore = transaction.objectStore('sessions');
-                // Add index for pinning functionality
                 sessionStore.createIndex('is_pinned', 'is_pinned', { unique: false });
             }
         },
@@ -34,13 +33,23 @@ export async function getGlobalContext() {
             id: 'default',
             ai_name: "Seraa",
             user_name: "User",
-            long_term_memory: { memory: [] },
+            ai_long_term_memory: { memory: [] },
             saved_info: { info: [] },
             user_location: "Jakarta",
             safety_settings: "BLOCK_MEDIUM_AND_ABOVE"
         };
         await saveGlobalContext(context);
     }
+    
+    // Gracefully handle migration from old data structure
+    if (context.long_term_memory && !context.ai_long_term_memory) {
+        context.ai_long_term_memory = context.long_term_memory;
+        delete context.long_term_memory;
+    }
+    if (!context.ai_long_term_memory) {
+        context.ai_long_term_memory = { memory: [] };
+    }
+
     return context;
 }
 

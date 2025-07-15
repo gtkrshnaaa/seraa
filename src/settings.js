@@ -9,48 +9,33 @@ let currentContext;
 const settingsModal = document.getElementById('settings-modal');
 const closeButton = settingsModal.querySelector('.close-button');
 const saveButton = document.getElementById('save-settings-button');
-
-// Form inputs
 const userNameInput = document.getElementById('user-name-input');
 const aiNameInput = document.getElementById('ai-name-input');
 const userLocationInput = document.getElementById('user-location-input');
 const apiKeyInput = document.getElementById('api-key-input');
 const safetySettingsSelect = document.getElementById('safety-settings-select');
-
-// Saved Info elements
 const savedInfoList = document.getElementById('saved-info-list');
 const addInfoForm = document.getElementById('add-info-form');
 const addInfoInput = document.getElementById('add-info-input');
+const longTermMemoryList = document.getElementById('ai-long-term-memory-list');
 
-// Long-Term Memory elements
-const longTermMemoryList = document.getElementById('long-term-memory-list');
-
-/**
- * Loads data from IndexedDB and populates the settings form.
- */
 async function loadSettings() {
     currentContext = await getGlobalContext();
     const apiKey = getApiKey();
 
-    // Populate general settings
     userNameInput.value = currentContext.user_name || '';
     aiNameInput.value = currentContext.ai_name || '';
     userLocationInput.value = currentContext.user_location || '';
     apiKeyInput.value = apiKey || '';
     safetySettingsSelect.value = currentContext.safety_settings || 'BLOCK_MEDIUM_AND_ABOVE';
 
-    // Populate saved info
     renderSavedInfo();
-    // Populate long-term memory
-    renderLongTermMemory();
+    renderAILongTermMemory();
 }
 
-/**
- * Renders the list of saved info items.
- */
 function renderSavedInfo() {
     savedInfoList.innerHTML = '';
-    if (currentContext && currentContext.saved_info && currentContext.saved_info.info) {
+    if (currentContext?.saved_info?.info) {
         currentContext.saved_info.info.forEach((item, index) => {
             const div = document.createElement('div');
             div.className = 'item';
@@ -63,13 +48,10 @@ function renderSavedInfo() {
     }
 }
 
-/**
- * Renders the list of long-term memory items.
- */
-function renderLongTermMemory() {
+function renderAILongTermMemory() {
     longTermMemoryList.innerHTML = '';
-    if (currentContext && currentContext.long_term_memory && currentContext.long_term_memory.memory) {
-        currentContext.long_term_memory.memory.forEach((item, index) => {
+    if (currentContext?.ai_long_term_memory?.memory) {
+        currentContext.ai_long_term_memory.memory.forEach((item, index) => {
             const div = document.createElement('div');
             div.className = 'item';
             div.innerHTML = `
@@ -81,29 +63,19 @@ function renderLongTermMemory() {
     }
 }
 
-/**
- * Saves all settings from the form back to IndexedDB.
- */
 async function saveSettings() {
-    // Update context object from inputs
     currentContext.user_name = userNameInput.value;
     currentContext.ai_name = aiNameInput.value;
     currentContext.user_location = userLocationInput.value;
     currentContext.safety_settings = safetySettingsSelect.value;
     
-    // Save API key separately in localStorage
     saveApiKey(apiKeyInput.value);
-
-    // Save the entire context to IndexedDB
     await saveGlobalContext(currentContext);
     
     alert('Settings saved!');
     settingsModal.style.display = 'none';
 }
 
-/**
- * Initializes the settings panel, loading data and setting up event listeners.
- */
 export function initSettings() {
     closeButton.onclick = () => settingsModal.style.display = 'none';
     saveButton.onclick = saveSettings;
@@ -129,15 +101,12 @@ export function initSettings() {
     longTermMemoryList.addEventListener('click', (e) => {
         if (e.target.classList.contains('delete-button')) {
             const index = parseInt(e.target.dataset.index, 10);
-            currentContext.long_term_memory.memory.splice(index, 1);
-            renderLongTermMemory();
+            currentContext.ai_long_term_memory.memory.splice(index, 1);
+            renderAILongTermMemory();
         }
     });
 }
 
-/**
- * Opens the settings modal and loads the latest data.
- */
 export function openSettings() {
     settingsModal.style.display = 'flex';
     loadSettings();
