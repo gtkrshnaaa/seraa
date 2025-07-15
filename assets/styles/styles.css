@@ -23,12 +23,14 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
 }
 
 #main-layout {
     display: flex;
     width: 100vw;
-    height: 100%;
+    height: 100vh;
     position: relative;
 }
 
@@ -41,6 +43,8 @@ body {
     flex-shrink: 0;
     z-index: 200;
     transition: transform 0.3s ease-in-out;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 #sidebar-header {
@@ -130,6 +134,9 @@ body {
 
 header {
     padding: 1rem;
+    padding-top: calc(1rem + env(safe-area-inset-top));
+    padding-left: calc(1rem + env(safe-area-inset-left));
+    padding-right: calc(1rem + env(safe-area-inset-right));
     border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
@@ -177,6 +184,9 @@ main#chat-window {
 
 footer {
     padding: 1rem;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    padding-left: calc(1rem + env(safe-area-inset-left));
+    padding-right: calc(1rem + env(safe-area-inset-right));
     border-top: 1px solid var(--border-color);
     background-color: #202020;
 }
@@ -390,6 +400,8 @@ button {
         height: 100%;
         transform: translateX(-100%);
         box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+        padding-left: 0; /* Reset padding for mobile sidebar */
+        padding-right: 0;
     }
 
     #sidebar.sidebar-visible {
