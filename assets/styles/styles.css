@@ -145,7 +145,7 @@ header {
 }
 
 #session-title {
-    font-size: 1.2rem;
+    font-size: 0.8rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -163,7 +163,7 @@ main#chat-window {
 }
 
 .chat-message {
-    padding: 0.8rem 1.2rem;
+    padding: 0.2rem 0.4rem;
     border-radius: 12px;
     max-width: 80%;
     line-height: 1.5;
@@ -200,7 +200,7 @@ footer {
     flex-grow: 1;
     background-color: var(--surface);
     color: var(--primary-text);
-    border: 1px solid var(--border-color);
+    border: none;
     border-radius: 8px;
     padding: 0.8rem;
     font-size: 1rem;
