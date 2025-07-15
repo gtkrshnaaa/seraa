@@ -190,7 +190,7 @@ async function handleRemember() {
         return;
     }
 
-    rememberButton.innerHTML = 'Reflecting...';
+    rememberButton.innerHTML = '<i class="uil uil-brain"></i> Reflecting...';
     rememberButton.disabled = true;
 
     try {
@@ -202,7 +202,8 @@ async function handleRemember() {
             .map(i => `User: ${i.input}\nAI: ${i.response}`)
             .join('\n\n');
         
-        const reflectionPrompt = `You are an AI assistant named ${globalContext.ai_name}. Your user is ${global.user_name}.
+        // Changed "global.user_name" to "globalContext.user_name"
+        const reflectionPrompt = `You are an AI assistant named ${globalContext.ai_name}. Your user is ${globalContext.user_name}.
 Based *only* on the recent conversation excerpt below, formulate a single, insightful observation about the user or their current activity from your perspective as their AI companion.
 Start your response with "I've noticed that..." or "I understand now that..." or a similar reflective phrase. Be concise.
 
