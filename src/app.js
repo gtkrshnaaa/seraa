@@ -174,7 +174,9 @@ async function handleChatSubmit(e) {
     const prompt = buildPrompt(globalContext, sessionData);
     const aiResponse = await callGemini(prompt, apiKey, globalContext.safety_settings);
 
-    loadingIndicator.textContent = aiResponse;
+    // Update loading indicator with the real response
+    const renderedHtml = DOMPurify.sanitize(marked.parse(aiResponse || ''));
+    loadingIndicator.innerHTML = renderedHtml;
 
     activeSession.previous_interactions.push({
         input: userInput,
@@ -198,7 +200,7 @@ async function handleRemember() {
         return;
     }
 
-    rememberButton.textContent = '🧠 Reflecting...';
+    rememberButton.textContent = 'Reflecting...';
     rememberButton.disabled = true;
 
     try {
@@ -246,7 +248,10 @@ Your reflection on the user:`;
 function addMessageToUI(text, sender) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('chat-message', `${sender}-message`);
-    messageElement.textContent = text;
+
+    const renderedHtml = DOMPurify.sanitize(marked.parse(text || ''));
+    messageElement.innerHTML = renderedHtml;
+
     chatWindow.appendChild(messageElement);
     chatWindow.scrollTop = chatWindow.scrollHeight;
     return messageElement;
