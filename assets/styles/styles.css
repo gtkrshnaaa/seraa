@@ -19,6 +19,12 @@ body {
     overflow: hidden;
 }
 
+#landing-page-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
 #main-layout {
     display: flex;
     width: 100vw;
