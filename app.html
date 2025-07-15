@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seraa</title>
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
     <link rel="stylesheet" href="assets/styles/styles.css">
 </head>
 <body>
@@ -11,7 +12,7 @@
         <aside id="sidebar">
             <header id="sidebar-header">
                 <h2>Sessions</h2>
-                <button id="new-chat-button" class="header-button" title="Start a New Chat">✨ New</button>
+                <button id="new-chat-button" class="header-button" title="Start a New Chat"><i class="uil uil-plus"></i> New</button>
             </header>
             <ul id="session-list">
             </ul>
@@ -19,11 +20,11 @@
 
         <div id="app-container">
             <header>
-                <div id="menu-toggle-button" class="header-button" title="Toggle Menu">☰</div>
+                <div id="menu-toggle-button" class="header-button" title="Toggle Menu"><i class="uil uil-bars"></i></div>
                 <h1 id="session-title">Seraa</h1>
                 <div class="header-actions">
-                    <button id="remember-button" class="header-button" title="Summarize and Remember Conversation">Remember</button>
-                    <div id="settings-icon" title="Settings">⚙️</div>
+                    <button id="remember-button" class="header-button" title="Summarize and Remember Conversation"><i class="uil uil-save"></i> Remember</button>
+                    <div id="settings-icon" title="Settings"><i class="uil uil-cog"></i></div>
                 </div>
             </header>
             
@@ -32,7 +33,7 @@
             <footer>
                 <form id="chat-form">
                     <textarea id="chat-input" placeholder="Type..." rows="1"></textarea>
-                    <button type="submit">Send</button>
+                    <button type="submit"><i class="uil uil-message"></i></button>
                 </form>
             </footer>
         </div>
@@ -42,7 +43,7 @@
 
     <div id="settings-modal" class="modal">
         <div class="modal-content settings-panel">
-            <span class="close-button">&times;</span>
+            <span class="close-button"><i class="uil uil-times"></i></span>
             <h2>Settings</h2>
 
             <div class="settings-section">
