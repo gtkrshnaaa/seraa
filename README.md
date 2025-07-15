@@ -61,13 +61,13 @@ Shared memory and identity data:
 ```json
 {
   "id": "default",
-  "ai_name": "SERAA",
-  "user_name": "Prince",
-  "long_term_memory": {
+  "ai_name": "Seraa",
+  "user_name": "User",
+  "ai_long_term_memory": {
     "memory": [
       {
         "memory_saved_at": "2025-07-13T09:00:00+07:00",
-        "memory_content": "Prince avoids Android Studio due to performance. Prefers lightweight Flutter setups."
+        "memory_content": "User avoids Android Studio due to performance. Prefers lightweight Flutter setups."
       }
     ]
   },
@@ -95,8 +95,8 @@ A full snapshot of one chat session:
 {
   "id": "session_001",
   "date_time": "2025-07-14T17:45:00+07:00",
-  "ai_name": "SERAA",
-  "user_name": "Prince",
+  "ai_name": "Seraa",
+  "user_name": "User",
   "long_term_memory": { ... },
   "saved_info": { ... },
   "user_location": "City",
@@ -162,7 +162,7 @@ Before sending a request to Gemini, session data is converted into a structured 
 
 ```
 AI Name: SERAA  
-User Name: Prince  
+User Name: User  
 Location: City  
 
 Saved Info:  
@@ -170,8 +170,8 @@ AI Persona is calm, wise, non-childish.
 User Persona is a perfectionist and aesthetic programmer who values control and offline-first tools.  
 
 Long-Term Memory:  
-- 2025-07-13: Prince avoids Android Studio due to performance concerns and prefers lightweight Flutter setups.  
-- 2025-07-12: Prince is building a personal AI without backend, powered by Gemini API and local memory using JSON files.  
+- 2025-07-13: User avoids Android Studio due to performance concerns and prefers lightweight Flutter setups.  
+- 2025-07-12: User is building a personal AI without backend, powered by Gemini API and local memory using JSON files.  
 
 History:  
 User: Why audit OS?  
