@@ -1,6 +1,6 @@
 // File: service-worker.js
 
-const CACHE_NAME = 'seraa-cache-v17'; // Version bump for new assets
+const CACHE_NAME = 'seraa-cache-v18'; // Version bump for new assets
 const URLS_TO_CACHE = [
     // Paths are now relative to the project root.
     'index.html',
