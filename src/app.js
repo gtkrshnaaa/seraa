@@ -190,7 +190,7 @@ async function handleRemember() {
         return;
     }
 
-    rememberButton.innerHTML = '<i class="uil uil-brain"></i> Reflecting...';
+    rememberButton.innerHTML = 'Reflecting...';
     rememberButton.disabled = true;
 
     try {
