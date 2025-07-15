@@ -163,9 +163,9 @@ main#chat-window {
 }
 
 .chat-message {
-    padding: 0.2rem 0.1rem;
+    padding: 0.1rem 0.3rem;
     border-radius: 12px;
-    max-width: 80%;
+    max-width: 95%;
     line-height: 1.5;
 }
 
@@ -198,7 +198,7 @@ footer {
 
 #chat-input {
     flex-grow: 1;
-    background-color: var(--background);
+    background-color: var(--surface);
     color: var(--primary-text);
     border: none;
     border-radius: 8px;
