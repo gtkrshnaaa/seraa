@@ -2,7 +2,23 @@ export function buildPrompt(globalContext, sessionData) {
     const { ai_name, user_name, user_location, saved_info, long_term_memory } = globalContext;
     const { previous_interactions, current_input } = sessionData;
 
-    let prompt = `AI Name: ${ai_name}\n`;
+    // Get the current time in a readable format for the AI
+    const now = new Date();
+    const currentTimeString = now.toLocaleString('en-US', { 
+        timeZone: 'Asia/Jakarta', 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        hour12: true 
+    });
+
+
+    // Start the prompt with the current time
+    let prompt = `Current Time: ${currentTimeString} (WIB)\n`;
+    prompt = `AI Name: ${ai_name}\n`;
     prompt += `User Name: ${user_name}\n`;
     prompt += `Location: ${user_location}\n\n`;
 
