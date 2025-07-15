@@ -7,11 +7,9 @@ import { callGemini } from './api.js';
 import { initSettings, openSettings } from './settings.js';
 import { initSidebar, updateSidebar } from './sidebar.js';
 
-// --- Global State ---
 let activeSession = null;
 let allSessions = [];
 
-// --- DOM Elements ---
 const chatWindow = document.getElementById('chat-window');
 const chatForm = document.getElementById('chat-form');
 const chatInput = document.getElementById('chat-input');
@@ -23,8 +21,6 @@ const sidebar = document.getElementById('sidebar');
 const menuToggleButton = document.getElementById('menu-toggle-button');
 const overlay = document.getElementById('overlay');
 
-
-// --- Main Application Logic ---
 document.addEventListener('DOMContentLoaded', main);
 
 async function main() {
@@ -33,7 +29,7 @@ async function main() {
     
     if ('serviceWorker' in navigator) {
         try {
-            await navigator.serviceWorker.register('../service-worker.js');
+            await navigator.serviceWorker.register('service-worker.js');
             console.log('Service Worker registered successfully.');
         } catch (error) {
             console.error('Service Worker registration failed:', error);
@@ -66,7 +62,6 @@ async function main() {
         openSettings();
     }
     
-    // --- Event Listeners ---
     settingsIcon.addEventListener('click', openSettings);
     chatForm.addEventListener('submit', handleChatSubmit);
     newChatButton.addEventListener('click', handleNewChat);
@@ -80,7 +75,6 @@ async function main() {
     });
 }
 
-// --- Responsive Sidebar Logic ---
 function toggleSidebar() {
     sidebar.classList.toggle('sidebar-visible');
     overlay.classList.toggle('visible');
@@ -90,8 +84,6 @@ function closeSidebar() {
     sidebar.classList.remove('sidebar-visible');
     overlay.classList.remove('visible');
 }
-
-// --- Session Management ---
 
 function getLatestSession(sessions) {
     if (!sessions || sessions.length === 0) return null;
@@ -148,8 +140,6 @@ async function handleSessionDeleted(deletedId) {
     }
     updateSidebar(allSessions, activeSession.id);
 }
-
-// --- Chat & Memory Logic ---
 
 async function handleChatSubmit(e) {
     e.preventDefault();

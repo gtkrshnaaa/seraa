@@ -1,9 +1,8 @@
-// File: service-worker.js (Corrected for GitHub Pages)
+// File: service-worker.js
 
-const CACHE_NAME = 'seraa-cache-v13'; // Version bump to trigger re-caching
+const CACHE_NAME = 'seraa-cache-v14'; // Version bump for new fixes
 const URLS_TO_CACHE = [
-    // Paths are now relative to the project root, not the domain root.
-    // The base URL from the <base> tag in your HTML handles the sub-directory.
+    // Paths are now relative to the project root.
     'index.html',
     'app.html',
     'manifest.json',
@@ -18,7 +17,7 @@ const URLS_TO_CACHE = [
     'src/settings.js',
     'src/sidebar.js',
     
-    // External resources are cached as is
+    // External resources
     'https://cdn.jsdelivr.net/npm/idb@7/build/index.min.js',
 
     // Key icons for PWA metadata
@@ -37,11 +36,10 @@ self.addEventListener('install', event => {
                 console.error('Failed to cache files during install:', error);
             })
     );
-    self.skipWaiting(); // Force the new service worker to activate
+    self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
-    // Clean up old caches
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(
@@ -56,12 +54,7 @@ self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request)
             .then(response => {
-                // Cache hit - return response
-                if (response) {
-                    return response;
-                }
-                // Not in cache - fetch from network
-                return fetch(event.request);
+                return response || fetch(event.request);
             })
     );
 });
