@@ -1,6 +1,6 @@
 // File: src/api.js
 
-const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=";
+const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=";
 
 export async function callGemini(prompt, apiKey, safetyThreshold = 'BLOCK_NONE') {
     try {
