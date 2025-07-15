@@ -173,10 +173,10 @@ async function handleChatSubmit(e) {
     });
     
     if (activeSession.previous_interactions.length === 1) {
-        const renamePrompt = `Based on this initial user prompt, create a very short title for this conversation (maximum 4-5 words). User Prompt: "${userInput}"`;
-        activeSession.name = await callGemini(renamePrompt, apiKey, "BLOCK_NONE");
-        sessionTitle.textContent = activeSession.name;
-    }
+    const renamePrompt = `Based on this initial user prompt, create a very short title for this conversation (maximum 4-5 words). User Prompt: "${userInput}"`;
+    activeSession.name = await callGemini(renamePrompt, apiKey, globalContext.safety_settings); 
+    sessionTitle.textContent = activeSession.name;
+}
     
     await upsertSession(activeSession);
     updateSidebar(allSessions, activeSession.id);
@@ -202,10 +202,10 @@ async function handleRemember() {
             .map(i => `User: ${i.input}\nAI: ${i.response}`)
             .join('\n\n');
         
-        // Changed "global.user_name" to "globalContext.user_name"
-        const reflectionPrompt = `You are an AI assistant named ${globalContext.ai_name}. Your user is ${globalContext.user_name}.
-Based *only* on the recent conversation excerpt below, formulate a single, insightful observation about the user or their current activity from your perspective as their AI companion.
-Start your response with "I've noticed that..." or "I understand now that..." or a similar reflective phrase. Be concise.
+        const reflectionPrompt = `Your name is ${globalContext.ai_name}. Your interlocutors is ${globalContext.user_name}.
+Based 4 until 10 conversation excerpt below, formulate a single, insightful observation about the user or their current activity from your perspective.
+Start your response with "I've noticed that..." or "I understand now that..." or a similar reflective phrase. Be concise. 
+Remember specific things about your conversation partner, such as what he did, the feelings he experienced, etc., mention the name of the activity or experience explicitly.
 
 ---
 RECENT CONVERSATION:
