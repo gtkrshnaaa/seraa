@@ -47,7 +47,7 @@ function render() {
         li.innerHTML = `
             <span class="session-name">${pinIcon} ${session.name}</span>
             <div class="session-actions">
-                <button class="pin-btn" title="Pin Session"><i class="uil uil-thumbtack"></i></button>
+                <button class="pin-btn" title="Pin Session"><i class="uil uil-map-pin"></i></button>
                 <button class="rename-btn" title="Rename Session"><i class="uil uil-edit-alt"></i></button>
                 <button class="delete-btn" title="Delete Session"><i class="uil uil-trash-alt"></i></button>
             </div>
