@@ -101,20 +101,27 @@ export async function callGeminiStream(prompt, apiKey, safetyThreshold, callback
                 }
 
                 const chunk = decoder.decode(value);
+                // This parses multiple JSON objects that might arrive in a single chunk
                 const jsonChunks = chunk
+                    .replace(/^data: /gm, '') // Remove all 'data: ' prefixes
                     .split('\n')
-                    .filter(line => line.trim().startsWith('data: '))
-                    .map(line => line.replace('data: ', ''));
+                    .filter(line => line.trim() !== ''); // Remove empty lines
 
                 for (const jsonStr of jsonChunks) {
                     try {
                         const parsed = JSON.parse(jsonStr);
+
+                        // NEW CHECK: Check for block reason early
+                        const blockReason = parsed.promptFeedback?.blockReason;
+                        if (blockReason) {
+                            onError(`Response blocked by safety settings. Reason: ${blockReason}. Adjust in Settings.`);
+                            return; // Stop processing the stream
+                        }
                         
-                        // Handle cases where the stream is blocked mid-way.
                         const finishReason = parsed.candidates?.[0]?.finishReason;
                         if (finishReason === "SAFETY") {
                             onError("The response was stopped midway due to safety settings.");
-                            return; // Stop further processing.
+                            return; // Stop processing the stream
                         }
 
                         const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -126,7 +133,7 @@ export async function callGeminiStream(prompt, apiKey, safetyThreshold, callback
                     }
                 }
                 
-                processStream(); // Continue reading the stream.
+                processStream(); // Continue reading the stream
             }).catch(error => {
                 console.error("Stream reading error:", error);
                 if (onError) onError(error.message);

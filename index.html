@@ -9,12 +9,10 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link rel="manifest" href="manifest.json">
     
-    <!-- Google Font for a professional code typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 
-    <!-- highlight.js library for Syntax Highlighting -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
@@ -85,12 +83,30 @@
             padding: 0 !important;
             color: #c5c5c5;
         }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #a0a0a0;
+            border-radius: 50%;
+            animation: typing-blink 1.4s infinite both;
+        }
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typing-blink {
+            0% { opacity: 0.2; }
+            20% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
     </style>
 </head>
 <body class="bg-[#1a1a1a] text-[#e0e0e0] font-sans overflow-hidden">
 
     <div id="app" class="flex w-screen h-screen" v-cloak>
-        <!-- Sidebar -->
         <aside id="sidebar" :class="['w-72 bg-[#1a1a1a] border-r border-[#444] flex flex-col flex-shrink-0 z-30 transition-transform duration-300 ease-in-out', 'fixed inset-y-0 left-0 md:relative', isSidebarVisible ? 'translate-x-0' : '-translate-x-full', 'md:translate-x-0']" style="padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);">
             <header class="p-4 flex justify-between items-center border-b border-[#444] flex-shrink-0">
                 <h2 class="text-lg font-semibold">Sessions</h2>
@@ -114,7 +130,6 @@
             </ul>
         </aside>
 
-        <!-- App Container -->
         <div id="app-container" class="flex-grow w-full h-screen flex flex-col bg-[#202020]">
             <header class="p-2 sm:p-4 flex items-center gap-2 border-b border-[#444] flex-shrink-0" style="padding-top: calc(0.5rem + env(safe-area-inset-top)); padding-left: calc(0.5rem + env(safe-area-inset-left)); padding-right: calc(0.5rem + env(safe-area-inset-right));">
                 <button @click="toggleSidebar" title="Toggle Menu" class="md:hidden text-2xl p-2 -ml-2 flex-shrink-0"><i class="uil uil-bars"></i></button>
@@ -130,27 +145,21 @@
                 </div>
             </header>
             
-            <!-- Chat Window -->
             <main id="chat-window" class="flex-grow p-4 overflow-y-auto flex flex-col gap-1" ref="chatWindow" @click="handleCopyClick">
                 <template v-if="activeSession" v-for="(interaction, index) in activeSession.previous_interactions" :key="interaction.id || index">
                     
-                    <!-- User Message Bubble (with Edit Logic) -->
                     <div class="w-full flex justify-end">
-                        <!-- Condition: Display normal chat bubble if NOT being edited -->
                         <template v-if="!editingInteraction || editingInteraction.id !== interaction.id">
                             <div class="flex items-center group">
-                                <!-- Edit Button (appears on hover) -->
                                 <div class="flex items-center mr-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button @click.stop="startEditing(interaction)" title="Edit" class="p-2 rounded-full hover:bg-white/10" :disabled="isTyping">
                                         <i class="uil uil-pen text-lg"></i>
                                     </button>
                                 </div>
-                                <!-- Normal chat bubble -->
                                 <div class="max-w-full px-4 py-2 my-1 bg-[#2a2a2a] text-white rounded-2xl rounded-br-none break-words" v-html="renderMarkdown(interaction.input)"></div>
                             </div>
                         </template>
 
-                        <!-- Condition: Display edit form if THIS is being edited -->
                         <template v-else>
                             <div class="w-full sm:w-[95%] my-1 p-3 bg-[#2f2f2f] rounded-2xl border border-[#444]">
                                 <textarea
@@ -170,14 +179,21 @@
                         </template>
                     </div>
 
-                    <!-- AI Response Bubble -->
                     <div v-if="interaction.response" class="w-full flex justify-start">
                          <div class="max-w-[99%] sm:max-w-[99%] my-1 break-words prose" v-html="renderMarkdown(interaction.response)"></div>
                     </div>
                 </template>
+                
+                <div v-if="isTyping" class="w-full flex justify-start">
+                    <div class="max-w-full px-4 py-2 my-1 bg-[#1a1a1a] border border-[#444] text-white rounded-2xl rounded-bl-none flex items-center gap-2">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+
             </main>
 
-            <!-- Footer -->
             <footer class="p-4 border-t border-[#444] bg-[#202020]" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom)); padding-left: calc(1rem + env(safe-area-inset-left)); padding-right: calc(1rem + env(safe-area-inset-right));">
                 <form @submit.prevent="handleChatSubmit($event, 'submit')" class="flex gap-2 items-end">
                     <textarea ref="chatInputRef" v-model="chatInput" @input="autoResizeChatInput" @keydown.enter.exact.prevent="handleChatSubmit($event, 'enter')" placeholder="Type..." rows="1" style="max-height: 200px;" class="flex-grow bg-[#2a2a2a] text-[#e0e0e0] border-none rounded-lg p-3 text-base resize-none focus:outline-none" :disabled="isTyping"></textarea>
@@ -186,7 +202,6 @@
             </footer>
         </div>
 
-        <!-- Settings Modal (No Changes) -->
         <div v-if="isSettingsOpen" class="fixed inset-0 bg-black/70 flex justify-center items-center z-50 p-4">
             <div class="bg-[#2a2a2a] p-6 sm:p-8 border border-[#444] rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
                 <div class="flex justify-between items-center mb-6 flex-shrink-0">
