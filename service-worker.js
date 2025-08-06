@@ -1,9 +1,8 @@
 // File: service-worker.js
 
-const CACHE_NAME = 'seraa-cache-v25-vue'; // Version bump for new architecture
+const CACHE_NAME = 'seraa-cache-v26-vue'; // Version bump for new architecture
 const URLS_TO_CACHE = [
     'index.html',
-    'app.html',
     'manifest.json',
 
     // Scripts (Note: sidebar.js and settings.js are removed)
