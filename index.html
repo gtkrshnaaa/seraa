@@ -17,6 +17,9 @@
         html {
             background-color: #1a1a1a;
         }
+        [v-cloak] {
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-[#1a1a1a] text-[#e0e0e0] font-sans overflow-hidden">
@@ -77,14 +80,14 @@
             </header>
             
             <main id="chat-window" class="flex-grow p-4 overflow-y-auto flex flex-col gap-4" ref="chatWindow">
-                <div v-if="activeSession" v-for="interaction in activeSession.previous_interactions" class="max-w-[95%]">
-                    <div class="p-1 self-end flex justify-end">
-                         <div class="px-4 py-2 bg-[#88aaff] text-[#111] rounded-2xl rounded-br-none" v-html="renderMarkdown(interaction.input)"></div>
+                <template v-if="activeSession" v-for="interaction in activeSession.previous_interactions">
+                    <div class="self-end flex justify-end max-w-[95%]">
+                         <div class="px-4 py-2 bg-[#88aaff] text-[#111] rounded-2xl rounded-br-none break-words" v-html="renderMarkdown(interaction.input)"></div>
                     </div>
-                    <div class="p-1 self-start">
-                         <div class="px-4 py-2 bg-[#2a2a2a] rounded-2xl rounded-bl-none" v-html="renderMarkdown(interaction.response)"></div>
+                    <div v-if="interaction.response" class="self-start flex justify-start max-w-[95%]">
+                         <div class="px-4 py-2 bg-[#2a2a2a] rounded-2xl rounded-bl-none break-words" v-html="renderMarkdown(interaction.response)"></div>
                     </div>
-                </div>
+                </template>
                  <div v-if="isTyping" class="self-start">
                     <div class="px-4 py-2 bg-[#2a2a2a] rounded-2xl rounded-bl-none">...</div>
                 </div>
@@ -97,89 +100,90 @@
                 <form @submit.prevent="handleChatSubmit" class="flex gap-2">
                     <textarea 
                         v-model="chatInput"
+                        @input="autoResize"
                         @keydown.enter.exact.prevent="handleChatSubmit"
                         placeholder="Type..." 
                         rows="1"
+                        style="max-height: 200px;"
                         class="flex-grow bg-[#2a2a2a] text-[#e0e0e0] border-none rounded-lg p-3 text-base resize-none focus:outline-none"
                     ></textarea>
-                    <button type="submit" class="bg-[#88aaff] text-[#111] w-12 h-12 rounded-lg font-bold flex items-center justify-center text-2xl"><i class="uil uil-message"></i></button>
+                    <button type="submit" class="bg-[#88aaff] text-[#111] w-12 h-12 rounded-lg font-bold flex items-center justify-center text-2xl flex-shrink-0"><i class="uil uil-message"></i></button>
                 </form>
             </footer>
         </div>
-    </div>
 
-    <div v-if="isSettingsOpen" class="fixed inset-0 bg-black/70 flex justify-center items-center z-50">
-        <div class="bg-[#2a2a2a] p-8 border border-[#444] rounded-lg w-[90%] max-w-2xl max-h-[85vh] flex flex-col">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-center flex-grow">Settings</h2>
-                <span @click="closeSettings" class="text-[#a0a0a0] text-3xl font-bold cursor-pointer hover:text-white"><i class="uil uil-times"></i></span>
-            </div>
-
-            <div class="overflow-y-auto pr-2">
-                <div class="mb-8">
-                    <h3 class="text-lg font-semibold text-[#a0a0a0] mb-4">General</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block mb-2 text-sm text-[#a0a0a0]">Your Name</label>
-                            <input type="text" v-model="editableContext.user_name" placeholder="e.g., User" class="w-full p-3 bg-[#1a1a1a] border border-[#444] rounded-md text-base">
-                        </div>
-                        <div>
-                            <label class="block mb-2 text-sm text-[#a0a0a0]">AI's Name</label>
-                            <input type="text" v-model="editableContext.ai_name" placeholder="e.g., Seraa" class="w-full p-3 bg-[#1a1a1a] border border-[#444] rounded-md text-base">
-                        </div>
-                        <div>
-                            <label class="block mb-2 text-sm text-[#a0a0a0]">Your Location</label>
-                            <input type="text" v-model="editableContext.user_location" placeholder="e.g., Jakarta" class="w-full p-3 bg-[#1a1a1a] border border-[#444] rounded-md text-base">
-                        </div>
-                         <div>
-                            <label class="block mb-2 text-sm text-[#a0a0a0]">Safety Level</label>
-                            <select v-model="editableContext.safety_settings" class="w-full p-3 bg-[#1a1a1a] border border-[#444] rounded-md text-base appearance-none">
-                                <option value="BLOCK_NONE">Block None (Lenient)</option>
-                                <option value="BLOCK_ONLY_HIGH">Block Only High</option>
-                                <option value="BLOCK_MEDIUM_AND_ABOVE">Block Medium & Above (Default)</option>
-                                <option value="BLOCK_LOW_AND_ABOVE">Block Low & Above (Strict)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <label class="block mb-2 text-sm text-[#a0a0a0]">Gemini API Key</label>
-                        <input type="password" v-model="editableApiKey" placeholder="Paste your key here" class="w-full p-3 bg-[#1a1a1a] border border-[#444] rounded-md text-base">
-                    </div>
+        <div v-if="isSettingsOpen" class="fixed inset-0 bg-black/70 flex justify-center items-center z-50 p-4">
+            <div class="bg-[#2a2a2a] p-8 border border-[#444] rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
+                <div class="flex justify-between items-center mb-6 flex-shrink-0">
+                    <h2 class="text-2xl font-bold text-center flex-grow">Settings</h2>
+                    <span @click="closeSettings" class="text-[#a0a0a0] text-3xl font-bold cursor-pointer hover:text-white"><i class="uil uil-times"></i></span>
                 </div>
 
-                <div class="mb-8 pt-6 border-t border-[#444]">
-                    <h3 class="text-lg font-semibold text-[#a0a0a0] mb-4">Saved Info (Persona, Principles, etc.)</h3>
-                    <div class="flex flex-col gap-2">
-                        <div v-for="(item, index) in editableContext.saved_info.info" :key="index" class="flex items-center gap-2 bg-[#1a1a1a] p-3 border border-[#444] rounded-md">
-                            <span class="flex-grow break-words">{{ item }}</span>
-                            <button @click="editableContext.saved_info.info.splice(index, 1)" class="bg-red-500 text-white rounded-full w-6 h-6 flex-shrink-0 flex items-center justify-center font-bold">&times;</button>
-                        </div>
-                    </div>
-                    <form @submit.prevent="addSavedInfo" class="flex gap-2 mt-4">
-                        <input type="text" v-model="newInfoText" placeholder="Add new info..." required class="flex-grow p-3 bg-[#1a1a1a] border border-[#444] rounded-md text-base">
-                        <button type="submit" class="px-4 bg-[#88aaff] text-[#111] rounded-md font-semibold">Add</button>
-                    </form>
-                </div>
-                
-                <div class="pt-6 border-t border-[#444]">
-                     <h3 class="text-lg font-semibold text-[#a0a0a0] mb-4">AI's Long-Term Memory</h3>
-                     <div class="flex flex-col gap-2">
-                        <div v-if="!editableContext.ai_long_term_memory.memory.length" class="text-[#a0a0a0] italic">No memories saved yet.</div>
-                        <div v-for="(item, index) in editableContext.ai_long_term_memory.memory" :key="index" class="flex items-center gap-2 bg-[#1a1a1a] p-3 border border-[#444] rounded-md">
-                            <div class="flex-grow break-words">
-                                <b class="font-semibold">{{ new Date(item.memory_saved_at).toLocaleDateString() }}:</b> {{ item.memory_content }}
+                <div class="overflow-y-auto pr-2 flex-grow" v-if="editableContext">
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-[#a0a0a0] mb-4">General</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block mb-2 text-sm text-[#a0a0a0]">Your Name</label>
+                                <input type="text" v-model="editableContext.user_name" placeholder="e.g., User" class="w-full p-3 bg-[#1a1a1a] border border-[#444] rounded-md text-base">
                             </div>
-                            <button @click="editableContext.ai_long_term_memory.memory.splice(index, 1)" class="bg-red-500 text-white rounded-full w-6 h-6 flex-shrink-0 flex items-center justify-center font-bold">&times;</button>
+                            <div>
+                                <label class="block mb-2 text-sm text-[#a0a0a0]">AI's Name</label>
+                                <input type="text" v-model="editableContext.ai_name" placeholder="e.g., Seraa" class="w-full p-3 bg-[#1a1a1a] border border-[#444] rounded-md text-base">
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm text-[#a0a0a0]">Your Location</label>
+                                <input type="text" v-model="editableContext.user_location" placeholder="e.g., Jakarta" class="w-full p-3 bg-[#1a1a1a] border border-[#444] rounded-md text-base">
+                            </div>
+                             <div>
+                                <label class="block mb-2 text-sm text-[#a0a0a0]">Safety Level</label>
+                                <select v-model="editableContext.safety_settings" class="w-full p-3 bg-[#1a1a1a] border border-[#444] rounded-md text-base appearance-none">
+                                    <option value="BLOCK_NONE">Block None (Lenient)</option>
+                                    <option value="BLOCK_ONLY_HIGH">Block Only High</option>
+                                    <option value="BLOCK_MEDIUM_AND_ABOVE">Block Medium & Above (Default)</option>
+                                    <option value="BLOCK_LOW_AND_ABOVE">Block Low & Above (Strict)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label class="block mb-2 text-sm text-[#a0a0a0]">Gemini API Key</label>
+                            <input type="password" v-model="editableApiKey" placeholder="Paste your key here" class="w-full p-3 bg-[#1a1a1a] border border-[#444] rounded-md text-base">
+                        </div>
+                    </div>
+
+                    <div class="mb-8 pt-6 border-t border-[#444]">
+                        <h3 class="text-lg font-semibold text-[#a0a0a0] mb-4">Saved Info (Persona, Principles, etc.)</h3>
+                        <div class="flex flex-col gap-2">
+                            <div v-for="(item, index) in editableContext.saved_info.info" :key="index" class="flex items-center gap-2 bg-[#1a1a1a] p-3 border border-[#444] rounded-md">
+                                <span class="flex-grow break-words">{{ item }}</span>
+                                <button @click="editableContext.saved_info.info.splice(index, 1)" class="bg-red-500 text-white rounded-full w-6 h-6 flex-shrink-0 flex items-center justify-center font-bold">&times;</button>
+                            </div>
+                        </div>
+                        <form @submit.prevent="addSavedInfo" class="flex gap-2 mt-4">
+                            <input type="text" v-model="newInfoText" placeholder="Add new info..." required class="flex-grow p-3 bg-[#1a1a1a] border border-[#444] rounded-md text-base">
+                            <button type="submit" class="px-4 bg-[#88aaff] text-[#111] rounded-md font-semibold">Add</button>
+                        </form>
+                    </div>
+                    
+                    <div class="pt-6 border-t border-[#444]">
+                         <h3 class="text-lg font-semibold text-[#a0a0a0] mb-4">AI's Long-Term Memory</h3>
+                         <div class="flex flex-col gap-2">
+                            <div v-if="!editableContext.ai_long_term_memory.memory.length" class="text-[#a0a0a0] italic">No memories saved yet.</div>
+                            <div v-for="(item, index) in editableContext.ai_long_term_memory.memory" :key="index" class="flex items-center gap-2 bg-[#1a1a1a] p-3 border border-[#444] rounded-md">
+                                <div class="flex-grow break-words">
+                                    <b class="font-semibold">{{ new Date(item.memory_saved_at).toLocaleDateString() }}:</b> {{ item.memory_content }}
+                                </div>
+                                <button @click="editableContext.ai_long_term_memory.memory.splice(index, 1)" class="bg-red-500 text-white rounded-full w-6 h-6 flex-shrink-0 flex items-center justify-center font-bold">&times;</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <button @click="saveSettings" class="w-full p-4 text-lg mt-8 bg-[#88aaff] text-[#111] rounded-lg font-bold">Save and Close</button>
+                <button @click="saveSettings" class="w-full p-4 text-lg mt-8 bg-[#88aaff] text-[#111] rounded-lg font-bold flex-shrink-0">Save and Close</button>
+            </div>
         </div>
-    </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    </div> <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
     <script src="src/app.js" type="module"></script>
 </body>
