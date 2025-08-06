@@ -1,15 +1,8 @@
-// File: src/app.js
-// Deskripsi: File utama aplikasi yang mengelola semua logika UI, state management (dengan Vue 3),
-// dan interaksi pengguna. Ini adalah jantung dari aplikasi SERAA.
-
 import { initDB, getGlobalContext, saveGlobalContext, upsertSession, getAllSessions, deleteSession as dbDeleteSession } from './db.js';
 import { getApiKey, saveApiKey } from './key_manager.js';
 import { buildPrompt } from './context_builder.js';
 import { callGemini } from './api.js';
 
-// === FUNGSI BANTUAN ===
-// Fungsi krusial untuk "membersihkan" string agar aman ditampilkan sebagai HTML.
-// Ini mencegah error rendering jika kode dari AI mengandung karakter spesial.
 function escapeHtml(unsafe) {
     if (typeof unsafe !== 'string') return '';
     return unsafe
@@ -46,21 +39,18 @@ const app = createApp({
         const chatWindow = ref(null);
         const chatInputRef = ref(null);
 
-        // === FUNGSI RENDER UTAMA ===
-        // Fungsi cerdas ini menggantikan renderer markdown standar.
         const renderMarkdown = (text) => {
             if (!text) return '';
-
-            // 1. Regex untuk menemukan tag <CODE>...</CODE> kustom kita.
+            
+            // Regex untuk menemukan tag <CODE>...</CODE>
             const codeBlockRegex = /<CODE language="(\w+)">([\s\S]*?)<\/CODE>/g;
             
-            // 2. Mengganti setiap blok kode yang ditemukan dengan struktur HTML yang kita inginkan.
+            // Mengganti blok kode dengan struktur HTML yang diinginkan
             let processedText = text.replace(codeBlockRegex, (match, language, code) => {
                 const validLanguage = language || 'plaintext';
-                const escapedCodeForAttribute = encodeURIComponent(code); // Aman untuk atribut data-*
-                const escapedCodeForDisplay = escapeHtml(code); // Aman untuk ditampilkan di dalam <pre><code>
+                const escapedCodeForAttribute = encodeURIComponent(code);
+                const escapedCodeForDisplay = escapeHtml(code);
 
-                // Struktur HTML untuk blok kode yang cantik.
                 return `
                     <div class="code-block-wrapper">
                         <div class="code-block-header">
@@ -75,16 +65,20 @@ const app = createApp({
                 `;
             });
 
-            // 3. Teks yang tersisa (di luar blok kode) diproses sebagai Markdown biasa.
-            // Ini memungkinkan format seperti **bold** atau *italic* tetap berfungsi.
-            // Kita juga mengganti newline (\n) dengan <br> untuk menjaga pemformatan paragraf.
-            processedText = processedText.replace(/\n/g, '<br>');
-            processedText = DOMPurify.sanitize(marked.parse(processedText));
+            // Mengganti newline dengan <br> untuk teks di luar blok kode
+            const parts = processedText.split(/(<div class="code-block-wrapper">[\s\S]*?<\/div>)/g);
+            const finalParts = parts.map(part => {
+                if (part.startsWith('<div class="code-block-wrapper">')) {
+                    return part; // Biarkan blok kode apa adanya
+                }
+                // Untuk teks biasa, ganti newline dan proses dengan marked
+                let plainText = part.replace(/\n/g, '<br>');
+                return DOMPurify.sanitize(marked.parse(plainText));
+            });
             
-            return processedText;
+            return finalParts.join('');
         };
 
-        // Fungsi untuk menangani klik pada tombol "Copy" di blok kode.
         const handleCopyClick = (event) => {
             const button = event.target.closest('.code-block-copy-btn');
             if (button) {
@@ -104,6 +98,7 @@ const app = createApp({
             }
         };
 
+        // ... (Semua fungsi dari onMounted hingga addSavedInfo tetap sama persis)
         onMounted(() => {
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
@@ -196,7 +191,14 @@ const app = createApp({
             const foundSession = state.sessions.find(s => s.id === sessionId);
             if (foundSession) {
                 state.activeSession = foundSession;
-                scrollToBottom();
+                // Panggil highlight.js untuk sesi yang ada saat dimuat
+                nextTick(() => {
+                    const codeBlocks = chatWindow.value.querySelectorAll('pre code');
+                    codeBlocks.forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
+                    scrollToBottom();
+                });
             }
             state.isSidebarVisible = false;
         };
@@ -254,6 +256,7 @@ const app = createApp({
             }
         };
 
+
         const handleChatSubmit = async (event, sourceType = 'submit') => {
             if (sourceType === 'enter' && window.innerWidth < 768) {
                 return;
@@ -282,7 +285,17 @@ const app = createApp({
             state.isTyping = false;
             state.activeSession.previous_interactions[state.activeSession.previous_interactions.length - 1].response = aiResponse;
             
-            scrollToBottom();
+            // === INI BAGIAN OPTIMASINYA ===
+            // Setelah respons diterima dan DOM diperbarui oleh Vue...
+            nextTick(() => {
+                // ...cari blok kode terakhir yang baru ditambahkan...
+                const lastCodeBlock = chatWindow.value.querySelector('.code-block-wrapper:last-of-type pre code');
+                if (lastCodeBlock) {
+                    // ...dan panggil highlight.js untuk memberinya warna!
+                    hljs.highlightElement(lastCodeBlock);
+                }
+                scrollToBottom();
+            });
 
             if (state.activeSession.previous_interactions.length === 1) {
                 const renamePrompt = `Based on this initial user prompt, create a very short title for this conversation (maximum 4-5 words). User Prompt: "${userInput}"`;
@@ -337,7 +350,6 @@ Your reflection on the user:`;
             }
         };
 
-        // Mengekspos semua state dan method yang dibutuhkan oleh template.
         return {
             ...toRefs(state),
             chatWindow,
