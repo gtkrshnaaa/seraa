@@ -9,12 +9,12 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link rel="manifest" href="manifest.json">
     
-    <!-- 1. Google Font untuk tipografi kode yang profesional -->
+    <!-- Google Font untuk tipografi kode yang profesional -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 
-    <!-- 2. Library highlight.js untuk Syntax Highlighting -->
+    <!-- Library highlight.js untuk Syntax Highlighting -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
@@ -30,30 +30,30 @@
             display: none;
         }
 
-        /* === STYLE UNTUK RENDER KODE === */
         .code-block-wrapper {
-            background-color: #282c34; /* Warna tema Atom One Dark */
-            border-radius: 0.75rem; /* Sudut lebih tumpul */
+            background-color: #313640; /* Warna latar belakang utama yang sedikit lebih gelap */
+            border-radius: 0.75rem;
             margin: 0.75rem 0;
-            overflow: hidden; /* Memastikan semua sudut rapi */
-            border: 1px solid #444;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            overflow: hidden; /* Penting untuk menjaga sudut tumpul */
+            border: 1px solid #4a5058; /* Border yang sangat halus */
         }
         .code-block-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0.6rem 1rem;
-            background-color: #21252b;
-            color: #abb2bf;
+            background-color: #313640; /* Warna header sama dengan wrapper */
+            color: #d0d3d8;
             font-size: 0.875rem;
             font-family: 'JetBrains Mono', monospace;
+            /* Garis pemisah yang tegas di bawah header */
+            border-bottom: 1px solid #4a5058; 
         }
         .code-block-copy-btn {
             background-color: transparent;
-            color: #abb2bf;
+            color: #d0d3d8;
             border: none;
-            padding: 0.25rem 0.5rem;
+            padding: 0.25rem;
             border-radius: 0.375rem;
             cursor: pointer;
             display: flex;
@@ -62,30 +62,34 @@
             transition: background-color 0.2s, color 0.2s;
         }
         .code-block-copy-btn:hover {
-            background-color: #3a3f4b;
-            color: #e0e6f1;
+            background-color: #4a5058;
+            color: #ffffff;
         }
-        /* Mengubah style <pre> dan <code> */
+        .code-block-copy-btn .uil {
+            font-size: 1.2rem; /* Sedikit memperbesar ikon copy */
+        }
+        .code-block-copy-btn span {
+            display: none; /* Sembunyikan teks "Copy" untuk tampilan yang lebih minimalis */
+        }
         .code-block-wrapper pre {
             margin: 0;
             padding: 1.25rem;
             overflow-x: auto;
             white-space: pre;
-            background-color: #282c34; /* Pastikan sama dengan wrapper */
+            background-color: #282c34; /* Warna area kode sesuai tema Atom One Dark */
         }
         .code-block-wrapper code {
-            font-family: 'JetBrains Mono', monospace; /* Menggunakan font profesional */
+            font-family: 'JetBrains Mono', monospace;
             font-size: 0.9rem;
             line-height: 1.6;
             background: none !important;
             padding: 0 !important;
-            color: #abb2bf; /* Warna teks default dari tema */
+            color: #abb2bf;
         }
     </style>
 </head>
 <body class="bg-[#1a1a1a] text-[#e0e0e0] font-sans overflow-hidden">
 
-    <!-- Sisa dari body HTML-mu tetap sama persis -->
     <div id="app" class="flex w-screen h-screen" v-cloak>
         <!-- ... Sidebar ... -->
         <aside id="sidebar" :class="['w-72 bg-[#1a1a1a] border-r border-[#444] flex flex-col flex-shrink-0 z-30 transition-transform duration-300 ease-in-out', 'fixed inset-y-0 left-0 md:relative', isSidebarVisible ? 'translate-x-0' : '-translate-x-full', 'md:translate-x-0']" style="padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);">
@@ -97,7 +101,7 @@
             </header>
             <ul id="session-list" class="flex-grow overflow-y-auto">
                 <li v-if="!sortedSessions.length" class="p-4 text-[#a0a0a0]">No sessions yet.</li>
-                <li v-for="session in sortedSessions" :key="session.id" @click="selectSession(session.id)" :class="['px-4 py-3 cursor-pointer border-b border-[#444] flex justify-between items-center group', { 'bg-[#88aaff] text-[#111]': activeSession && activeSession.id === session.id }]" :title="session.name">
+                <li v-for="session in sortedSessions" :key="session.id" @click="selectSession(session.id)" :class="['px-4 py-3 cursor-pointer border-b border-[#444] flex justify-between items-center group', { 'bg-[#ffffffe1] text-[#111]': activeSession && activeSession.id === session.id }]" :title="session.name">
                     <span class="truncate pr-4 flex items-center gap-2">
                         <i v-if="session.is_pinned" class="uil uil-thumbtack"></i>
                         {{ session.name }}
@@ -131,7 +135,7 @@
             <main id="chat-window" class="flex-grow p-4 overflow-y-auto flex flex-col gap-1" ref="chatWindow" @click="handleCopyClick">
                 <template v-if="activeSession" v-for="interaction in activeSession.previous_interactions">
                     <div class="w-full flex justify-end">
-                        <div class="max-w-[85%] sm:max-w-[75%] px-4 py-2 my-1 bg-[#88aaff] text-[#111] rounded-2xl rounded-br-none break-words" v-html="renderMarkdown(interaction.input)"></div>
+                        <div class="max-w-[85%] sm:max-w-[75%] px-4 py-2 my-1 bg-[#ffffffe1] text-[#111] rounded-2xl rounded-br-none break-words" v-html="renderMarkdown(interaction.input)"></div>
                     </div>
                     <div v-if="interaction.response" class="w-full flex justify-start">
                          <div class="max-w-[85%] sm:max-w-[75%] px-4 py-2 my-1 bg-[#2a2a2a] rounded-2xl rounded-bl-none break-words prose" v-html="renderMarkdown(interaction.response)"></div>
@@ -146,7 +150,7 @@
             <footer class="p-4 border-t border-[#444] bg-[#202020]" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom)); padding-left: calc(1rem + env(safe-area-inset-left)); padding-right: calc(1rem + env(safe-area-inset-right));">
                 <form @submit.prevent="handleChatSubmit($event, 'submit')" class="flex gap-2 items-end">
                     <textarea ref="chatInputRef" v-model="chatInput" @input="autoResizeChatInput" @keydown.enter.exact.prevent="handleChatSubmit($event, 'enter')" placeholder="Type..." rows="1" style="max-height: 200px;" class="flex-grow bg-[#2a2a2a] text-[#e0e0e0] border-none rounded-lg p-3 text-base resize-none focus:outline-none"></textarea>
-                    <button type="submit" class="bg-[#88aaff] text-[#111] w-12 h-12 rounded-lg font-bold flex items-center justify-center text-2xl flex-shrink-0"><i class="uil uil-message"></i></button>
+                    <button type="submit" class="bg-[#ffffffe1] text-[#111] w-12 h-12 rounded-lg font-bold flex items-center justify-center text-2xl flex-shrink-0"><i class="uil uil-message"></i></button>
                 </form>
             </footer>
         </div>
@@ -199,7 +203,7 @@
                         </div>
                         <form @submit.prevent="addSavedInfo" class="flex flex-col sm:flex-row gap-2 mt-4">
                             <input type="text" v-model="newInfoText" placeholder="Add new info..." required class="flex-grow p-3 bg-[#1a1a1a] border border-[#444] rounded-md text-base">
-                            <button type="submit" class="w-full sm:w-auto px-4 py-3 bg-[#88aaff] text-[#111] rounded-md font-semibold flex-shrink-0">Add</button>
+                            <button type="submit" class="w-full sm:w-auto px-4 py-3 bg-[#ffffffe1] text-[#111] rounded-md font-semibold flex-shrink-0">Add</button>
                         </form>
                     </div>
                     <div class="pt-6 border-t border-[#444]">
@@ -215,7 +219,7 @@
                         </div>
                     </div>
                 </div>
-                <button @click="saveSettings" class="w-full p-4 text-lg mt-8 bg-[#88aaff] text-[#111] rounded-lg font-bold flex-shrink-0">Save and Close</button>
+                <button @click="saveSettings" class="w-full p-4 text-lg mt-8 bg-[#ffffffe1] text-[#111] rounded-lg font-bold flex-shrink-0">Save and Close</button>
             </div>
         </div>
     </div>
