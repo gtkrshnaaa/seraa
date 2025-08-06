@@ -1,27 +1,20 @@
 // File: service-worker.js
 
-const CACHE_NAME = 'seraa-cache-v24'; // Version bump for new assets
+const CACHE_NAME = 'seraa-cache-v25-vue'; // Version bump for new architecture
 const URLS_TO_CACHE = [
-    // Paths are now relative to the project root.
     'index.html',
     'app.html',
     'manifest.json',
-    'assets/styles/styles.css',
 
-    // Scripts
+    // Scripts (Note: sidebar.js and settings.js are removed)
     'src/app.js',
     'src/db.js',
     'src/key_manager.js',
     'src/context_builder.js',
     'src/api.js',
-    'src/settings.js',
-    'src/sidebar.js',
     
-    // External resources
-    'https://cdn.jsdelivr.net/npm/idb@7/build/index.min.js',
-    'https://cdn.jsdelivr.net/npm/marked/marked.min.js',
-    'https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js',
-    'https://unicons.iconscout.com/release/v4.0.8/css/line.css', // <-- Added this
+    // External resources (CDNs are usually best left to browser cache, but can be added if offline is critical)
+    'https://unicons.iconscout.com/release/v4.0.8/css/line.css',
 
     // Key icons for PWA metadata
     'assets/icons/icon-192x192.png',
@@ -54,6 +47,7 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
+    // For network-first resources like CDNs if needed, but for this setup we use cache-first
     event.respondWith(
         caches.match(event.request)
             .then(response => {

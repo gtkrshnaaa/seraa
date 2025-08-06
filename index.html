@@ -6,15 +6,15 @@
     <title>SERAA - Installation</title>
     <base href="/seraa/">
     <meta name="theme-color" content="#1a1a1a"/>
-    <link rel="stylesheet" href="assets/styles/styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="manifest" href="manifest.json">
 </head>
-<body>
-    <div id="landing-page-container">
-        <h1>SERAA</h1>
-        <p class="tagline">Self Reflection Agentic AI</p>
-        <p>A privacy-first personal AI designed to reflect you. Install it to your device to begin.</p>
-        <button id="installButton" class="button">Install SERAA</button>
+<body class="bg-[#1a1a1a] text-[#e0e0e0] font-sans flex items-center justify-center min-h-screen">
+    <div id="landing-page-container" class="text-center p-8">
+        <h1 class="text-5xl font-bold mb-2">SERAA</h1>
+        <p class="text-lg text-[#a0a0a0] mb-6">Self Reflection Agentic AI</p>
+        <p class="max-w-md mx-auto mb-8">A privacy-first personal AI designed to reflect you. Install it to your device to begin.</p>
+        <button id="installButton" class="bg-[#88aaff] text-[#111] font-bold py-3 px-8 rounded-lg text-lg hidden">Install SERAA</button>
     </div>
 
     <script>
@@ -27,19 +27,14 @@
         const installButton = document.getElementById('installButton');
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent the mini-infobar from appearing on mobile
             e.preventDefault();
-            // Stash the event so it can be triggered later.
             deferredPrompt = e;
-            // Update UI to show the install button
             installButton.style.display = 'block';
         });
 
         installButton.addEventListener('click', async () => {
             if (deferredPrompt) {
-                // Show the install prompt
                 deferredPrompt.prompt();
-                // Wait for the user to respond to the prompt
                 const { outcome } = await deferredPrompt.userChoice;
                 if (outcome === 'accepted') {
                     console.log('User accepted the SERAA installation');
