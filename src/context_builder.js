@@ -21,9 +21,6 @@ export function buildPrompt(globalContext, sessionData) {
         prompt += `\n\n`;
     }
 
-    // === INSTRUCTIONS FOR CODE FORMAT ===
-    // prompt += `Important: Whenever you provide code examples, always wrap them in markdown code blocks with the appropriate language specifiers (e.g., \`\`\`python ... \`\`\`).\n\n`;
-
     if (ai_long_term_memory && ai_long_term_memory.memory.length > 0) {
         prompt += `My Long-Term Memory (My previous observations about the user):\n`;
         prompt += ai_long_term_memory.memory.map(item => `- On ${new Date(item.memory_saved_at).toLocaleDateString()}, I noted: "${item.memory_content}"`).join('\n');
