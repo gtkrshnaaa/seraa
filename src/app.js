@@ -1,5 +1,3 @@
-// File: src/app.js
-
 import { initDB, getGlobalContext, saveGlobalContext, upsertSession, getAllSessions, deleteSession as dbDeleteSession } from './db.js';
 import { getApiKey, saveApiKey } from './key_manager.js';
 import { buildPrompt } from './context_builder.js';
@@ -25,18 +23,26 @@ const app = createApp({
             editableContext: null,
             editableApiKey: '',
             newInfoText: '',
+            deferredPrompt: null, 
         });
 
         const chatWindow = ref(null);
+        const chatInputRef = ref(null); 
 
-        const sortedSessions = computed(() => {
-            return [...state.sessions].sort((a, b) => {
-                if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
-                return new Date(b.date_time) - new Date(a.date_time);
+        // === LIFECYCLE HOOK ===
+        onMounted(() => {
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                state.deferredPrompt = e;
             });
+            window.addEventListener('appinstalled', () => {
+                state.deferredPrompt = null;
+            });
+
+            mainInit();
         });
         
-        onMounted(async () => {
+        const mainInit = async () => {
             await initDB();
             if ('serviceWorker' in navigator) {
                 try {
@@ -50,8 +56,17 @@ const app = createApp({
             if (!getApiKey()) {
                 openSettings();
             }
+        };
+
+        // === COMPUTED PROPERTIES ===
+        const sortedSessions = computed(() => {
+            return [...state.sessions].sort((a, b) => {
+                if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
+                return new Date(b.date_time) - new Date(a.date_time);
+            });
         });
 
+        // === UI METHODS ===
         const scrollToBottom = () => {
             nextTick(() => {
                 if (chatWindow.value) {
@@ -63,17 +78,36 @@ const app = createApp({
         const renderMarkdown = (text) => {
             return DOMPurify.sanitize(marked.parse(text || ''));
         };
-        
+
         const toggleSidebar = () => {
             state.isSidebarVisible = !state.isSidebarVisible;
         };
 
+        const autoResizeChatInput = () => {
+            const el = chatInputRef.value;
+            if (el) {
+                el.style.height = 'auto';
+                el.style.height = `${el.scrollHeight}px`;
+            }
+        };
+
+        const promptInstall = async () => {
+            if (!state.deferredPrompt) return;
+            state.deferredPrompt.prompt();
+            const { outcome } = await state.deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                console.log('User accepted the SERAA installation');
+            } else {
+                console.log('User dismissed the SERAA installation');
+            }
+            state.deferredPrompt = null;
+        };
+
+        // === DATA & SESSION METHODS ===
         const loadInitialData = async () => {
             state.globalContext = await getGlobalContext();
             state.sessions = await getAllSessions();
-            let sessionToLoad = state.sessions.length > 0
-                ? sortedSessions.value[0]
-                : null;
+            let sessionToLoad = state.sessions.length > 0 ? sortedSessions.value[0] : null;
             
             if (!sessionToLoad) {
                 sessionToLoad = await createNewSession(false);
@@ -90,7 +124,7 @@ const app = createApp({
             };
             newSession.id = await upsertSession(newSession);
             state.sessions.push(newSession);
-            if(select) {
+            if (select) {
                selectSession(newSession.id);
                state.isSidebarVisible = false;
             }
@@ -99,7 +133,7 @@ const app = createApp({
         
         const selectSession = (sessionId) => {
             const foundSession = state.sessions.find(s => s.id === sessionId);
-            if(foundSession) {
+            if (foundSession) {
                 state.activeSession = foundSession;
                 scrollToBottom();
             }
@@ -110,7 +144,6 @@ const app = createApp({
             const newName = prompt("Enter new session name:", session.name);
             if (newName && newName.trim() !== "") {
                 session.name = newName.trim();
-                // Convert proxy to raw object before saving
                 await upsertSession(toRawObject(session));
             }
         };
@@ -131,10 +164,10 @@ const app = createApp({
 
         const togglePinSession = async (session) => {
             session.is_pinned = !session.is_pinned;
-            // FIX: Convert proxy to raw object before saving
             await upsertSession(toRawObject(session));
         };
 
+        // === SETTINGS METHODS ===
         const openSettings = () => {
             state.editableContext = toRawObject(state.globalContext);
             state.editableApiKey = getApiKey() || '';
@@ -149,7 +182,6 @@ const app = createApp({
         const saveSettings = async () => {
             state.globalContext = { ...state.editableContext };
             saveApiKey(state.editableApiKey);
-            // FIX: Ensure the object saved is raw
             await saveGlobalContext(toRawObject(state.globalContext));
             alert('Settings saved!');
             closeSettings();
@@ -162,6 +194,7 @@ const app = createApp({
             }
         };
 
+        // === CORE CHAT & AI METHODS ===
         const handleChatSubmit = async () => {
             const userInput = state.chatInput.trim();
             if (!userInput || state.isTyping) return;
@@ -175,6 +208,7 @@ const app = createApp({
             
             state.activeSession.previous_interactions.push({ input: userInput, response: '' });
             state.chatInput = '';
+            nextTick(autoResizeChatInput); // Reset tinggi textarea
             state.isTyping = true;
             scrollToBottom();
             
@@ -193,7 +227,6 @@ const app = createApp({
                 state.activeSession.name = newTitle.replace(/"/g, ''); // Hapus tanda kutip jika ada
             }
 
-            // Convert proxy to raw object before saving
             await upsertSession(toRawObject(state.activeSession));
         };
         
@@ -230,7 +263,6 @@ Your reflection on the user:`;
                     memory_content: reflection
                 });
 
-                // FIX: Convert proxy to raw object before saving
                 await saveGlobalContext(toRawObject(state.globalContext));
                 alert(`New reflection saved:\n"${reflection}"`);
 
@@ -245,6 +277,7 @@ Your reflection on the user:`;
         return {
             ...toRefs(state),
             chatWindow,
+            chatInputRef,
             sortedSessions,
             renderMarkdown,
             toggleSidebar,
@@ -259,6 +292,8 @@ Your reflection on the user:`;
             addSavedInfo,
             handleChatSubmit,
             handleRemember,
+            autoResizeChatInput,
+            promptInstall,
         };
     }
 });
