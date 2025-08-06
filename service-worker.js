@@ -1,6 +1,6 @@
 // File: service-worker.js
 
-const CACHE_NAME = 'seraa-cache-v39-vue'; // Version bump for new architecture
+const CACHE_NAME = 'seraa-cache-v40-vue'; // Version bump for new architecture
 const URLS_TO_CACHE = [
     'index.html',
     'manifest.json',

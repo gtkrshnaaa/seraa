@@ -39,45 +39,50 @@ const app = createApp({
         const chatWindow = ref(null);
         const chatInputRef = ref(null);
 
+        // === FUNGSI RENDERMARKDOWN ===
         const renderMarkdown = (text) => {
             if (!text) return '';
-            
-            // Regex untuk menemukan tag <CODE>...</CODE>
+
+            const codeBlocks = [];
             const codeBlockRegex = /<CODE language="(\w+)">([\s\S]*?)<\/CODE>/g;
-            
-            // Mengganti blok kode dengan struktur HTML yang diinginkan
+
+            // 1. Ekstrak blok kode dan ganti dengan placeholder yang aman.
             let processedText = text.replace(codeBlockRegex, (match, language, code) => {
                 const validLanguage = language || 'plaintext';
                 const escapedCodeForAttribute = encodeURIComponent(code);
                 const escapedCodeForDisplay = escapeHtml(code);
 
-                return `
+                const codeBlockHtml = `
                     <div class="code-block-wrapper">
                         <div class="code-block-header">
                             <span>${validLanguage}</span>
                             <button class="code-block-copy-btn" data-code="${escapedCodeForAttribute}">
                                 <i class="uil uil-copy"></i>
-                                <span>Copy</span>
                             </button>
                         </div>
                         <pre><code class="language-${validLanguage}">${escapedCodeForDisplay}</code></pre>
                     </div>
                 `;
+                codeBlocks.push(codeBlockHtml);
+                return `%%CODE_BLOCK_${codeBlocks.length - 1}%%`;
             });
 
-            // Mengganti newline dengan <br> untuk teks di luar blok kode
-            const parts = processedText.split(/(<div class="code-block-wrapper">[\s\S]*?<\/div>)/g);
-            const finalParts = parts.map(part => {
-                if (part.startsWith('<div class="code-block-wrapper">')) {
-                    return part; // Biarkan blok kode apa adanya
-                }
-                // Untuk teks biasa, ganti newline dan proses dengan marked
-                let plainText = part.replace(/\n/g, '<br>');
-                return DOMPurify.sanitize(marked.parse(plainText));
+            // 2. Proses seluruh teks (dengan placeholder) menggunakan marked.js.
+            let markdownHtml = marked.parse(processedText);
+
+            // 3. Ganti kembali placeholder dengan HTML blok kode yang sebenarnya.
+            markdownHtml = markdownHtml.replace(/<p>%%CODE_BLOCK_(\d+)%%<\/p>|%%CODE_BLOCK_(\d+)%%/g, (match, index1, index2) => {
+                const index = index1 || index2;
+                return codeBlocks[parseInt(index)];
             });
             
-            return finalParts.join('');
+            // 4. Sanitasi hasil akhir untuk keamanan.
+            return DOMPurify.sanitize(markdownHtml, { 
+                ADD_TAGS: ["div", "span", "pre", "code", "i", "button"], 
+                ADD_ATTR: ['data-code', 'class', 'title'] 
+            });
         };
+
 
         const handleCopyClick = (event) => {
             const button = event.target.closest('.code-block-copy-btn');
@@ -90,15 +95,16 @@ const app = createApp({
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
 
-                const originalText = button.querySelector('span').textContent;
-                button.querySelector('span').textContent = 'Copied!';
+                const icon = button.querySelector('i');
+                const originalIconClass = icon.className;
+                icon.className = 'uil uil-check'; // Ganti ikon menjadi centang
+                
                 setTimeout(() => {
-                    button.querySelector('span').textContent = originalText;
+                    icon.className = originalIconClass; // Kembalikan ikon copy
                 }, 2000);
             }
         };
 
-        // ... (Semua fungsi dari onMounted hingga addSavedInfo tetap sama persis)
         onMounted(() => {
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
@@ -191,7 +197,6 @@ const app = createApp({
             const foundSession = state.sessions.find(s => s.id === sessionId);
             if (foundSession) {
                 state.activeSession = foundSession;
-                // Panggil highlight.js untuk sesi yang ada saat dimuat
                 nextTick(() => {
                     const codeBlocks = chatWindow.value.querySelectorAll('pre code');
                     codeBlocks.forEach((block) => {
@@ -256,11 +261,8 @@ const app = createApp({
             }
         };
 
-
         const handleChatSubmit = async (event, sourceType = 'submit') => {
-            if (sourceType === 'enter' && window.innerWidth < 768) {
-                return;
-            }
+            if (sourceType === 'enter' && window.innerWidth < 768) return;
             
             const userInput = state.chatInput.trim();
             if (!userInput || state.isTyping) return;
@@ -285,14 +287,13 @@ const app = createApp({
             state.isTyping = false;
             state.activeSession.previous_interactions[state.activeSession.previous_interactions.length - 1].response = aiResponse;
             
-            // === INI BAGIAN OPTIMASINYA ===
-            // Setelah respons diterima dan DOM diperbarui oleh Vue...
             nextTick(() => {
-                // ...cari blok kode terakhir yang baru ditambahkan...
-                const lastCodeBlock = chatWindow.value.querySelector('.code-block-wrapper:last-of-type pre code');
-                if (lastCodeBlock) {
-                    // ...dan panggil highlight.js untuk memberinya warna!
-                    hljs.highlightElement(lastCodeBlock);
+                const lastBubble = chatWindow.value.querySelectorAll('.w-full.flex.justify-start');
+                if (lastBubble.length > 0) {
+                    const codeBlocks = lastBubble[lastBubble.length - 1].querySelectorAll('pre code');
+                    codeBlocks.forEach(block => {
+                        hljs.highlightElement(block);
+                    });
                 }
                 scrollToBottom();
             });

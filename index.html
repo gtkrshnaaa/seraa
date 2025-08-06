@@ -31,23 +31,22 @@
         }
 
         .code-block-wrapper {
-            background-color: #313640; /* Warna latar belakang utama yang sedikit lebih gelap */
+            background-color: #313640;
             border-radius: 0.75rem;
             margin: 0.75rem 0;
-            overflow: hidden; /* Penting untuk menjaga sudut tumpul */
-            border: 1px solid #4a5058; /* Border yang sangat halus */
+            overflow: hidden;
+            border: 1px solid #4a5058;
         }
         .code-block-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0.6rem 1rem;
-            background-color: #313640; /* Warna header sama dengan wrapper */
+            background-color: #2a2a2a;
             color: #d0d3d8;
             font-size: 0.875rem;
             font-family: 'JetBrains Mono', monospace;
-            /* Garis pemisah yang tegas di bawah header */
-            border-bottom: 1px solid #4a5058; 
+            border-bottom: 1px solid #494949; 
         }
         .code-block-copy-btn {
             background-color: transparent;
@@ -62,21 +61,21 @@
             transition: background-color 0.2s, color 0.2s;
         }
         .code-block-copy-btn:hover {
-            background-color: #4a5058;
+            background-color: #1e1e1e;
             color: #ffffff;
         }
         .code-block-copy-btn .uil {
-            font-size: 1.2rem; /* Sedikit memperbesar ikon copy */
+            font-size: 1.2rem;
         }
         .code-block-copy-btn span {
-            display: none; /* Sembunyikan teks "Copy" untuk tampilan yang lebih minimalis */
+            display: none;
         }
         .code-block-wrapper pre {
             margin: 0;
             padding: 1.25rem;
             overflow-x: auto;
             white-space: pre;
-            background-color: #282c34; /* Warna area kode sesuai tema Atom One Dark */
+            background-color: #1d1d1d;
         }
         .code-block-wrapper code {
             font-family: 'JetBrains Mono', monospace;
@@ -84,14 +83,14 @@
             line-height: 1.6;
             background: none !important;
             padding: 0 !important;
-            color: #abb2bf;
+            color: #c5c5c5;
         }
     </style>
 </head>
 <body class="bg-[#1a1a1a] text-[#e0e0e0] font-sans overflow-hidden">
 
     <div id="app" class="flex w-screen h-screen" v-cloak>
-        <!-- ... Sidebar ... -->
+        <!-- Sidebar -->
         <aside id="sidebar" :class="['w-72 bg-[#1a1a1a] border-r border-[#444] flex flex-col flex-shrink-0 z-30 transition-transform duration-300 ease-in-out', 'fixed inset-y-0 left-0 md:relative', isSidebarVisible ? 'translate-x-0' : '-translate-x-full', 'md:translate-x-0']" style="padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);">
             <header class="p-4 flex justify-between items-center border-b border-[#444] flex-shrink-0">
                 <h2 class="text-lg font-semibold">Sessions</h2>
@@ -115,7 +114,7 @@
             </ul>
         </aside>
 
-        <!-- ... App Container ... -->
+        <!-- App Container -->
         <div id="app-container" class="flex-grow w-full h-screen flex flex-col bg-[#202020]">
             <header class="p-2 sm:p-4 flex items-center gap-2 border-b border-[#444] flex-shrink-0" style="padding-top: calc(0.5rem + env(safe-area-inset-top)); padding-left: calc(0.5rem + env(safe-area-inset-left)); padding-right: calc(0.5rem + env(safe-area-inset-right));">
                 <button @click="toggleSidebar" title="Toggle Menu" class="md:hidden text-2xl p-2 -ml-2 flex-shrink-0"><i class="uil uil-bars"></i></button>
@@ -155,7 +154,7 @@
             </footer>
         </div>
 
-        <!-- ... Settings Modal ... -->
+        <!-- Settings Modal -->
         <div v-if="isSettingsOpen" class="fixed inset-0 bg-black/70 flex justify-center items-center z-50 p-4">
             <div class="bg-[#2a2a2a] p-6 sm:p-8 border border-[#444] rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
                 <div class="flex justify-between items-center mb-6 flex-shrink-0">
