@@ -134,7 +134,7 @@
             <main id="chat-window" class="flex-grow p-4 overflow-y-auto flex flex-col gap-1" ref="chatWindow" @click="handleCopyClick">
                 <template v-if="activeSession" v-for="interaction in activeSession.previous_interactions">
                     <div class="w-full flex justify-end">
-                        <div class="max-w-[99%] sm:max-w-[99%] px-4 py-2 my-1 bg-[#2a2a2a] text-[#111] rounded-2xl rounded-br-none break-words" v-html="renderMarkdown(interaction.input)"></div>
+                        <div class="max-w-[99%] sm:max-w-[99%] px-4 py-2 my-1 bg-[#2a2a2a] text-white rounded-2xl rounded-br-none break-words" v-html="renderMarkdown(interaction.input)"></div>
                     </div>
                     <div v-if="interaction.response" class="w-full flex justify-start">
                          <div class="max-w-[99%] sm:max-w-[99%] my-1 break-words prose" v-html="renderMarkdown(interaction.response)"></div>
