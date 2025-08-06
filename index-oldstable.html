@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Seraa</title>
-    <link rel="stylesheet" href="[https://unicons.iconscout.com/release/v4.0.8/css/line.css](https://unicons.iconscout.com/release/v4.0.8/css/line.css)">
-    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-    <script src="[https://unpkg.com/vue@3/dist/vue.global.js](https://unpkg.com/vue@3/dist/vue.global.js)"></script>
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link rel="manifest" href="manifest.json">
     <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #2a2a2a; }
         ::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #777; }
@@ -18,52 +18,6 @@
         }
         [v-cloak] {
             display: none;
-        }
-
-        /* === STYLE UNTUK RENDER KODE === */
-        .code-block-wrapper {
-            background-color: #1a1a1a;
-            border-radius: 0.5rem;
-            margin: 0.5rem 0;
-            position: relative;
-        }
-        .code-block-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem 0.75rem;
-            background-color: #2a2a2a;
-            border-top-left-radius: 0.5rem;
-            border-top-right-radius: 0.5rem;
-            color: #a0a0a0;
-            font-size: 0.875rem;
-        }
-        .code-block-copy-btn {
-            background-color: transparent;
-            color: #a0a0a0;
-            border: none;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-        .code-block-copy-btn:hover {
-            background-color: #444;
-            color: #e0e0e0;
-        }
-        .code-block-wrapper pre {
-            margin: 0;
-            padding: 1rem;
-            overflow-x: auto;
-            white-space: pre;
-        }
-        .code-block-wrapper code {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.9rem;
-            background: none !important; /* Override default inline code style */
-            padding: 0 !important;
         }
     </style>
 </head>
@@ -136,13 +90,13 @@
                 </div>
             </header>
             
-            <main id="chat-window" class="flex-grow p-4 overflow-y-auto flex flex-col gap-1" ref="chatWindow" @click="handleCopyClick">
+            <main id="chat-window" class="flex-grow p-4 overflow-y-auto flex flex-col gap-1" ref="chatWindow">
                 <template v-if="activeSession" v-for="interaction in activeSession.previous_interactions">
                     <div class="w-full flex justify-end">
                         <div class="max-w-[85%] sm:max-w-[75%] px-4 py-2 my-1 bg-[#88aaff] text-[#111] rounded-2xl rounded-br-none break-words" v-html="renderMarkdown(interaction.input)"></div>
                     </div>
                     <div v-if="interaction.response" class="w-full flex justify-start">
-                         <div class="max-w-[85%] sm:max-w-[75%] px-4 py-2 my-1 bg-[#2a2a2a] rounded-2xl rounded-bl-none break-words prose" v-html="renderMarkdown(interaction.response)"></div>
+                         <div class="max-w-[85%] sm:max-w-[75%] px-4 py-2 my-1 bg-[#2a2a2a] rounded-2xl rounded-bl-none break-words" v-html="renderMarkdown(interaction.response)"></div>
                     </div>
                 </template>
                  <div v-if="isTyping" class="self-start">
@@ -171,12 +125,12 @@
         </div>
 
         <div v-if="isSettingsOpen" class="fixed inset-0 bg-black/70 flex justify-center items-center z-50 p-4">
-            <div class="bg-[#2a2a2a] p-6 sm:p-8 border border-[#444] rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div class="bg-[#2a2a2a] p-8 border border-[#444] rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
                 <div class="flex justify-between items-center mb-6 flex-shrink-0">
                     <h2 class="text-2xl font-bold text-center flex-grow">Settings</h2>
                     <span @click="closeSettings" class="text-[#a0a0a0] text-3xl font-bold cursor-pointer hover:text-white"><i class="uil uil-times"></i></span>
                 </div>
-                <div class="overflow-y-auto pr-2 -mr-2 flex-grow" v-if="editableContext">
+                <div class="overflow-y-auto pr-2 flex-grow" v-if="editableContext">
                     <div class="mb-8">
                         <h3 class="text-lg font-semibold text-[#a0a0a0] mb-4">General</h3>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -215,9 +169,9 @@
                                 <button @click="editableContext.saved_info.info.splice(index, 1)" class="bg-red-500 text-white rounded-full w-6 h-6 flex-shrink-0 flex items-center justify-center font-bold">&times;</button>
                             </div>
                         </div>
-                        <form @submit.prevent="addSavedInfo" class="flex flex-col sm:flex-row gap-2 mt-4">
+                        <form @submit.prevent="addSavedInfo" class="flex gap-2 mt-4">
                             <input type="text" v-model="newInfoText" placeholder="Add new info..." required class="flex-grow p-3 bg-[#1a1a1a] border border-[#444] rounded-md text-base">
-                            <button type="submit" class="px-4 py-3 sm:py-0 bg-[#88aaff] text-[#111] rounded-md font-semibold flex-shrink-0">Add</button>
+                            <button type="submit" class="px-4 bg-[#88aaff] text-[#111] rounded-md font-semibold">Add</button>
                         </form>
                     </div>
                     <div class="pt-6 border-t border-[#444]">
@@ -239,8 +193,8 @@
 
     </div>
     
-    <script src="[https://cdn.jsdelivr.net/npm/marked/marked.min.js](https://cdn.jsdelivr.net/npm/marked/marked.min.js)"></script>
-    <script src="[https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js](https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js)"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
     <script src="src/app.js" type="module"></script>
 </body>
 </html>
