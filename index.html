@@ -32,7 +32,12 @@
 
         <aside 
             id="sidebar" 
-            :class="['w-72 bg-[#1a1a1a] border-r border-[#444] flex flex-col flex-shrink-0 z-30 transition-transform duration-300 ease-in-out', isSidebarVisible ? 'translate-x-0' : '-translate-x-full', 'md:relative md:translate-x-0']"
+            :class="[
+                'w-72 bg-[#1a1a1a] border-r border-[#444] flex flex-col flex-shrink-0 z-30 transition-transform duration-300 ease-in-out', 
+                'fixed inset-y-0 left-0 md:relative', 
+                isSidebarVisible ? 'translate-x-0' : '-translate-x-full',
+                'md:translate-x-0'
+            ]"
             style="padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);"
         >
             <header class="p-4 flex justify-between items-center border-b border-[#444] flex-shrink-0">
@@ -69,19 +74,16 @@
 
         <div id="app-container" class="flex-grow w-full h-screen flex flex-col bg-[#202020]">
             <header 
-                class="p-4 flex justify-between items-center gap-4 border-b border-[#444]"
-                style="padding-top: calc(1rem + env(safe-area-inset-top)); padding-left: calc(1rem + env(safe-area-inset-left)); padding-right: calc(1rem + env(safe-area-inset-right));"
+                class="p-2 sm:p-4 flex items-center gap-2 border-b border-[#444] flex-shrink-0"
+                style="padding-top: calc(0.5rem + env(safe-area-inset-top)); padding-left: calc(0.5rem + env(safe-area-inset-left)); padding-right: calc(0.5rem + env(safe-area-inset-right));"
             >
-                <button @click="toggleSidebar" title="Toggle Menu" class="md:hidden text-2xl p-2 -ml-2"><i class="uil uil-bars"></i></button>
-                <h1 class="text-base font-semibold truncate text-center flex-grow">{{ activeSession ? activeSession.name : 'Seraa' }}</h1>
-                <div class="flex items-center gap-2 sm:gap-4">
+                <button @click="toggleSidebar" title="Toggle Menu" class="md:hidden text-2xl p-2 -ml-2 flex-shrink-0"><i class="uil uil-bars"></i></button>
+                <h1 class="text-base font-semibold truncate text-center flex-1 min-w-0 mx-2">{{ activeSession ? activeSession.name : 'Seraa' }}</h1>
+                <div class="flex items-center gap-0 sm:gap-1 flex-shrink-0">
                     <button v-if="deferredPrompt" @click="promptInstall" title="Install App" class="text-2xl p-2 rounded-full hover:bg-white/10">
                         <i class="uil uil-download-alt"></i>
                     </button>
-                    <button @click="handleRemember" :disabled="isRemembering" class="px-4 py-2 bg-[#2a2a2a] text-[#e0e0e0] border border-[#444] rounded-lg text-sm hover:bg-[#444] disabled:opacity-50 hidden sm:flex items-center gap-2">
-                        {{ isRemembering ? 'Reflecting...' : 'Remember' }}
-                    </button>
-                    <button @click="handleRemember" :disabled="isRemembering" title="Remember" class="p-2 rounded-full text-2xl hover:bg-white/10 sm:hidden">
+                    <button @click="handleRemember" :disabled="isRemembering" title="Remember" class="text-2xl p-2 rounded-full hover:bg-white/10">
                         <i class="uil uil-brain"></i>
                     </button>
                     <div @click="openSettings" title="Settings" class="cursor-pointer text-2xl p-2 rounded-full hover:bg-white/10"><i class="uil uil-cog"></i></div>
