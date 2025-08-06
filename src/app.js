@@ -77,16 +77,22 @@ const app = createApp({
         const renderer = new marked.Renderer();
         renderer.code = (code, language) => {
             const validLanguage = language || 'plaintext';
+            // Menggunakan encodeURIComponent untuk data-code sudah benar dan aman.
+            const escapedCodeForAttribute = encodeURIComponent(code); 
+            
+            // Menggunakan fungsi escapeHtml yang baru untuk konten yang akan ditampilkan.
+            const escapedCodeForDisplay = escapeHtml(code);
+
             return `
                 <div class="code-block-wrapper">
                     <div class="code-block-header">
                         <span>${validLanguage}</span>
-                        <button class="code-block-copy-btn" data-code="${encodeURIComponent(code)}">
+                        <button class="code-block-copy-btn" data-code="${escapedCodeForAttribute}">
                             <i class="uil uil-copy"></i>
                             <span>Copy</span>
                         </button>
                     </div>
-                    <pre><code class="language-${validLanguage}">${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>
+                    <pre><code class="language-${validLanguage}">${escapedCodeForDisplay}</code></pre>
                 </div>
             `;
         };
