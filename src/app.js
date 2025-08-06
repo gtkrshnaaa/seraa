@@ -23,20 +23,21 @@ const app = createApp({
             editableContext: null,
             editableApiKey: '',
             newInfoText: '',
-            deferredPrompt: null, 
+            deferredPrompt: null,
         });
 
         const chatWindow = ref(null);
-        const chatInputRef = ref(null); 
+        const chatInputRef = ref(null);
 
-        // === LIFECYCLE HOOK ===
         onMounted(() => {
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 state.deferredPrompt = e;
+                console.log('`beforeinstallprompt` event was fired. Install button should now be visible.');
             });
             window.addEventListener('appinstalled', () => {
                 state.deferredPrompt = null;
+                console.log('SERAA was installed.');
             });
 
             mainInit();
@@ -58,7 +59,6 @@ const app = createApp({
             }
         };
 
-        // === COMPUTED PROPERTIES ===
         const sortedSessions = computed(() => {
             return [...state.sessions].sort((a, b) => {
                 if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
@@ -66,7 +66,6 @@ const app = createApp({
             });
         });
 
-        // === UI METHODS ===
         const scrollToBottom = () => {
             nextTick(() => {
                 if (chatWindow.value) {
@@ -103,7 +102,6 @@ const app = createApp({
             state.deferredPrompt = null;
         };
 
-        // === DATA & SESSION METHODS ===
         const loadInitialData = async () => {
             state.globalContext = await getGlobalContext();
             state.sessions = await getAllSessions();
@@ -167,7 +165,6 @@ const app = createApp({
             await upsertSession(toRawObject(session));
         };
 
-        // === SETTINGS METHODS ===
         const openSettings = () => {
             state.editableContext = toRawObject(state.globalContext);
             state.editableApiKey = getApiKey() || '';
@@ -194,7 +191,6 @@ const app = createApp({
             }
         };
 
-        // === CORE CHAT & AI METHODS ===
         const handleChatSubmit = async () => {
             const userInput = state.chatInput.trim();
             if (!userInput || state.isTyping) return;
@@ -208,7 +204,7 @@ const app = createApp({
             
             state.activeSession.previous_interactions.push({ input: userInput, response: '' });
             state.chatInput = '';
-            nextTick(autoResizeChatInput); // Reset tinggi textarea
+            nextTick(autoResizeChatInput);
             state.isTyping = true;
             scrollToBottom();
             
@@ -224,7 +220,7 @@ const app = createApp({
             if (state.activeSession.previous_interactions.length === 1) {
                 const renamePrompt = `Based on this initial user prompt, create a very short title for this conversation (maximum 4-5 words). User Prompt: "${userInput}"`;
                 const newTitle = await callGemini(renamePrompt, apiKey, state.globalContext.safety_settings);
-                state.activeSession.name = newTitle.replace(/"/g, ''); // Hapus tanda kutip jika ada
+                state.activeSession.name = newTitle.replace(/"/g, '');
             }
 
             await upsertSession(toRawObject(state.activeSession));

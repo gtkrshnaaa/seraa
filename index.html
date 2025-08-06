@@ -7,9 +7,8 @@
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    
+    <link rel="manifest" href="manifest.json">
     <style>
-        /* Custom scrollbar for a cleaner look */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #2a2a2a; }
         ::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
@@ -55,7 +54,11 @@
                         <i v-if="session.is_pinned" class="uil uil-thumbtack"></i>
                         {{ session.name }}
                     </span>
-                    <div :class="['flex gap-1 transition-opacity', { 'opacity-100': activeSession && activeSession.id === session.id, 'md:opacity-0 md:group-hover:opacity-100': !activeSession || activeSession.id !== session.id }]">
+                    <div :class="[
+                        'flex gap-1 transition-opacity',
+                        { 'opacity-100': activeSession && activeSession.id === session.id },
+                        { 'opacity-100 md:opacity-0 md:group-hover:opacity-100': !activeSession || activeSession.id !== session.id }
+                    ]">
                         <button @click.stop="togglePinSession(session)" title="Pin" :class="['p-2 rounded-full hover:bg-black/20', {'text-[#111]': activeSession && activeSession.id === session.id, 'text-[#e0e0e0]': !activeSession || activeSession.id !== session.id}]"><i class="uil uil-map-pin"></i></button>
                         <button @click.stop="renameSession(session)" title="Rename" :class="['p-2 rounded-full hover:bg-black/20', {'text-[#111]': activeSession && activeSession.id === session.id, 'text-[#e0e0e0]': !activeSession || activeSession.id !== session.id}]"><i class="uil uil-edit-alt"></i></button>
                         <button @click.stop="deleteSession(session)" title="Delete" :class="['p-2 rounded-full hover:bg-black/20', {'text-[#111]': activeSession && activeSession.id === session.id, 'text-[#e0e0e0]': !activeSession || activeSession.id !== session.id}]"><i class="uil uil-trash-alt"></i></button>
@@ -70,15 +73,18 @@
                 style="padding-top: calc(1rem + env(safe-area-inset-top)); padding-left: calc(1rem + env(safe-area-inset-left)); padding-right: calc(1rem + env(safe-area-inset-right));"
             >
                 <button @click="toggleSidebar" title="Toggle Menu" class="md:hidden text-2xl p-2 -ml-2"><i class="uil uil-bars"></i></button>
-                <h1 class="text-sm font-semibold truncate text-center flex-grow">{{ activeSession ? activeSession.name : 'Seraa' }}</h1>
-                <div class="flex items-center gap-4">
-                    <button v-if="deferredPrompt" @click="promptInstall" title="Install App" class="text-2xl cursor-pointer">
+                <h1 class="text-base font-semibold truncate text-center flex-grow">{{ activeSession ? activeSession.name : 'Seraa' }}</h1>
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <button v-if="deferredPrompt" @click="promptInstall" title="Install App" class="text-2xl p-2 rounded-full hover:bg-white/10">
                         <i class="uil uil-download-alt"></i>
                     </button>
-                    <button @click="handleRemember" :disabled="isRemembering" class="px-4 py-2 bg-[#2a2a2a] text-[#e0e0e0] border border-[#444] rounded-lg text-sm hover:bg-[#444] disabled:opacity-50 hidden sm:block">
+                    <button @click="handleRemember" :disabled="isRemembering" class="px-4 py-2 bg-[#2a2a2a] text-[#e0e0e0] border border-[#444] rounded-lg text-sm hover:bg-[#444] disabled:opacity-50 hidden sm:flex items-center gap-2">
                         {{ isRemembering ? 'Reflecting...' : 'Remember' }}
                     </button>
-                    <div @click="openSettings" title="Settings" class="cursor-pointer text-2xl"><i class="uil uil-cog"></i></div>
+                    <button @click="handleRemember" :disabled="isRemembering" title="Remember" class="p-2 rounded-full text-2xl hover:bg-white/10 sm:hidden">
+                        <i class="uil uil-brain"></i>
+                    </button>
+                    <div @click="openSettings" title="Settings" class="cursor-pointer text-2xl p-2 rounded-full hover:bg-white/10"><i class="uil uil-cog"></i></div>
                 </div>
             </header>
             
@@ -183,7 +189,9 @@
             </div>
         </div>
 
-    </div> <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
     <script src="src/app.js" type="module"></script>
 </body>
