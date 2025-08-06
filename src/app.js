@@ -36,17 +36,21 @@ const app = createApp({
             deferredPrompt: null,
         });
 
+        // State baru untuk fitur edit
+        const editingInteraction = ref(null);
+        const editedText = ref('');
+
         const chatWindow = ref(null);
         const chatInputRef = ref(null);
+        const editInputRef = ref(null); // Ref untuk textarea edit
 
-        // === FUNGSI RENDERMARKDOWN ===
+        // === FUNGSI RENDER MARKDOWN ===
         const renderMarkdown = (text) => {
             if (!text) return '';
 
             const codeBlocks = [];
             const codeBlockRegex = /<CODE language="(\w+)">([\s\S]*?)<\/CODE>/g;
 
-            // 1. Ekstrak blok kode dan ganti dengan placeholder yang aman.
             let processedText = text.replace(codeBlockRegex, (match, language, code) => {
                 const validLanguage = language || 'plaintext';
                 const escapedCodeForAttribute = encodeURIComponent(code);
@@ -67,22 +71,18 @@ const app = createApp({
                 return `%%CODE_BLOCK_${codeBlocks.length - 1}%%`;
             });
 
-            // 2. Proses seluruh teks (dengan placeholder) menggunakan marked.js.
             let markdownHtml = marked.parse(processedText);
 
-            // 3. Ganti kembali placeholder dengan HTML blok kode yang sebenarnya.
             markdownHtml = markdownHtml.replace(/<p>%%CODE_BLOCK_(\d+)%%<\/p>|%%CODE_BLOCK_(\d+)%%/g, (match, index1, index2) => {
                 const index = index1 || index2;
                 return codeBlocks[parseInt(index)];
             });
             
-            // 4. Sanitasi hasil akhir untuk keamanan.
             return DOMPurify.sanitize(markdownHtml, { 
                 ADD_TAGS: ["div", "span", "pre", "code", "i", "button"], 
                 ADD_ATTR: ['data-code', 'class', 'title'] 
             });
         };
-
 
         const handleCopyClick = (event) => {
             const button = event.target.closest('.code-block-copy-btn');
@@ -97,10 +97,10 @@ const app = createApp({
 
                 const icon = button.querySelector('i');
                 const originalIconClass = icon.className;
-                icon.className = 'uil uil-check'; // Ganti ikon menjadi centang
+                icon.className = 'uil uil-check';
                 
                 setTimeout(() => {
-                    icon.className = originalIconClass; // Kembalikan ikon copy
+                    icon.className = originalIconClass;
                 }, 2000);
             }
         };
@@ -158,6 +158,15 @@ const app = createApp({
                 el.style.height = `${el.scrollHeight}px`;
             }
         };
+        
+        // Fungsi untuk auto-resize textarea di mode edit
+        const autoResizeEditInput = (event) => {
+            const el = event.target;
+             if (el) {
+                el.style.height = 'auto';
+                el.style.height = `${el.scrollHeight}px`;
+            }
+        };
 
         const promptInstall = async () => {
             if (!state.deferredPrompt) return;
@@ -174,6 +183,14 @@ const app = createApp({
             if (!sessionToLoad) {
                 sessionToLoad = await createNewSession(false);
             }
+            // Tambahkan ID unik ke setiap interaksi jika belum ada
+            state.sessions.forEach(session => {
+                session.previous_interactions.forEach((interaction, index) => {
+                    if (!interaction.id) {
+                        interaction.id = `interaction-${Date.now()}-${index}`;
+                    }
+                });
+            });
             selectSession(sessionToLoad.id);
         };
 
@@ -250,6 +267,7 @@ const app = createApp({
             state.globalContext = { ...state.editableContext };
             saveApiKey(state.editableApiKey);
             await saveGlobalContext(toRawObject(state.globalContext));
+            // Menggunakan notifikasi non-blocking
             alert('Settings saved!');
             closeSettings();
         };
@@ -274,7 +292,12 @@ const app = createApp({
                 return;
             }
             
-            state.activeSession.previous_interactions.push({ input: userInput, response: '' });
+            const newInteraction = { 
+                id: `interaction-${Date.now()}`, // ID unik untuk setiap interaksi
+                input: userInput, 
+                response: '' 
+            };
+            state.activeSession.previous_interactions.push(newInteraction);
             state.chatInput = '';
             nextTick(autoResizeChatInput);
             state.isTyping = true;
@@ -285,7 +308,7 @@ const app = createApp({
             const aiResponse = await callGemini(prompt, apiKey, state.globalContext.safety_settings);
 
             state.isTyping = false;
-            state.activeSession.previous_interactions[state.activeSession.previous_interactions.length - 1].response = aiResponse;
+            newInteraction.response = aiResponse;
             
             nextTick(() => {
                 const lastBubble = chatWindow.value.querySelectorAll('.w-full.flex.justify-start');
@@ -351,25 +374,97 @@ Your reflection on the user:`;
             }
         };
 
+        // --- FUNGSI-FUNGSI BARU UNTUK FITUR EDIT ---
 
-        const editUserMessage = (interaction) => {
-            if (!interaction || !interaction.input) return;
-
-            // 1. Ambil teks dari interaksi yang mau diedit dan masukkan ke chat input
-            state.chatInput = interaction.input;
-
-            // 2. Fokus ke textarea agar pengguna bisa langsung mengetik
+        const startEditing = (interaction) => {
+            editingInteraction.value = toRawObject(interaction);
+            editedText.value = interaction.input;
             nextTick(() => {
-                if (chatInputRef.value) {
-                    chatInputRef.value.focus();
-                    // 3. Sesuaikan tinggi textarea secara otomatis
-                    autoResizeChatInput();
+                if (editInputRef.value) {
+                    editInputRef.value.focus();
+                    autoResizeEditInput({ target: editInputRef.value });
                 }
             });
         };
 
+        const cancelEditing = () => {
+            editingInteraction.value = null;
+            editedText.value = '';
+        };
+
+        const submitEditedMessage = async () => {
+            if (!editingInteraction.value || !editedText.value.trim()) {
+                cancelEditing();
+                return;
+            }
+
+            const newText = editedText.value.trim();
+            const originalInteractionId = editingInteraction.value.id;
+            
+            // Cari index dari interaksi yang diedit
+            const interactionIndex = state.activeSession.previous_interactions.findIndex(
+                i => i.id === originalInteractionId
+            );
+
+            if (interactionIndex === -1) {
+                console.error("Interaction to edit not found!");
+                cancelEditing();
+                return;
+            }
+
+            // --- LOGIKA TIME TRAVEL ---
+            // 1. Hapus semua interaksi SETELAH titik edit
+            state.activeSession.previous_interactions.splice(interactionIndex + 1);
+
+            // 2. Ambil referensi ke interaksi yang akan diubah
+            const targetInteraction = state.activeSession.previous_interactions[interactionIndex];
+
+            // 3. Update teks inputnya dan kosongkan respons lama
+            targetInteraction.input = newText;
+            targetInteraction.response = ''; // Hapus respons AI lama
+
+            state.isTyping = true;
+            cancelEditing(); // Keluar dari mode UI editing
+            scrollToBottom();
+
+            // 4. Bangun prompt baru hanya dengan sejarah yang sudah dipotong
+            // Kita gunakan seluruh riwayat yang sudah dipotong, dan input terakhir adalah teks yang baru
+            const sessionDataForPrompt = { 
+                ...toRawObject(state.activeSession), 
+                previous_interactions: state.activeSession.previous_interactions.slice(0, interactionIndex),
+                current_input: newText 
+            };
+            const prompt = buildPrompt(state.globalContext, sessionDataForPrompt);
+            const apiKey = getApiKey();
+
+            // 5. Panggil AI untuk mendapatkan respons baru
+            const aiResponse = await callGemini(prompt, apiKey, state.globalContext.safety_settings);
+
+            state.isTyping = false;
+            targetInteraction.response = aiResponse; // Masukkan respons AI yang baru
+
+            // 6. Finalisasi & Simpan
+            await upsertSession(toRawObject(state.activeSession));
+            nextTick(() => {
+                const codeBlocks = chatWindow.value.querySelectorAll('pre code');
+                codeBlocks.forEach(block => hljs.highlightElement(block));
+                scrollToBottom();
+            });
+        };
+
+
         return {
             ...toRefs(state),
+            // State & Ref untuk Edit
+            editingInteraction,
+            editedText,
+            editInputRef,
+            // Fungsi untuk Edit
+            startEditing,
+            cancelEditing,
+            submitEditedMessage,
+            autoResizeEditInput,
+            // State & Ref Lain
             chatWindow,
             chatInputRef,
             sortedSessions,
@@ -389,7 +484,6 @@ Your reflection on the user:`;
             autoResizeChatInput,
             promptInstall,
             handleCopyClick,
-            editUserMessage,
         };
     }
 });
