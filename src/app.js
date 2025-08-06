@@ -74,8 +74,44 @@ const app = createApp({
             });
         };
 
+        const renderer = new marked.Renderer();
+        renderer.code = (code, language) => {
+            const validLanguage = language || 'plaintext';
+            return `
+                <div class="code-block-wrapper">
+                    <div class="code-block-header">
+                        <span>${validLanguage}</span>
+                        <button class="code-block-copy-btn" data-code="${encodeURIComponent(code)}">
+                            <i class="uil uil-copy"></i>
+                            <span>Copy</span>
+                        </button>
+                    </div>
+                    <pre><code class="language-${validLanguage}">${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>
+                </div>
+            `;
+        };
+        
         const renderMarkdown = (text) => {
-            return DOMPurify.sanitize(marked.parse(text || ''));
+            return DOMPurify.sanitize(marked.parse(text || '', { renderer }));
+        };
+
+        const handleCopyClick = (event) => {
+            const button = event.target.closest('.code-block-copy-btn');
+            if (button) {
+                const codeToCopy = decodeURIComponent(button.dataset.code);
+                const textarea = document.createElement('textarea');
+                textarea.value = codeToCopy;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+
+                const originalText = button.querySelector('span').textContent;
+                button.querySelector('span').textContent = 'Copied!';
+                setTimeout(() => {
+                    button.querySelector('span').textContent = originalText;
+                }, 2000);
+            }
         };
 
         const toggleSidebar = () => {
@@ -191,7 +227,12 @@ const app = createApp({
             }
         };
 
-        const handleChatSubmit = async () => {
+        // === FUNGSI SUBMIT CHAT DIPERBARUI ===
+        const handleChatSubmit = async (event, sourceType = 'submit') => {
+            if (sourceType === 'enter' && window.innerWidth < 768) {
+                return; // Blokir 'Enter' untuk submit di mobile
+            }
+            
             const userInput = state.chatInput.trim();
             if (!userInput || state.isTyping) return;
 
@@ -290,6 +331,7 @@ Your reflection on the user:`;
             handleRemember,
             autoResizeChatInput,
             promptInstall,
+            handleCopyClick,
         };
     }
 });

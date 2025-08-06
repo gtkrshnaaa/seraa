@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Seraa</title>
-    <link rel="stylesheet" href="[https://unicons.iconscout.com/release/v4.0.8/css/line.css](https://unicons.iconscout.com/release/v4.0.8/css/line.css)">
-    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-    <script src="[https://unpkg.com/vue@3/dist/vue.global.js](https://unpkg.com/vue@3/dist/vue.global.js)"></script>
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link rel="manifest" href="manifest.json">
     <style>
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -20,7 +20,7 @@
             display: none;
         }
 
-        /* === STYLE UNTUK RENDER KODE === */
+        /* === STYLE BARU UNTUK RENDER KODE === */
         .code-block-wrapper {
             background-color: #1a1a1a;
             border-radius: 0.5rem;
@@ -154,12 +154,12 @@
                 class="p-4 border-t border-[#444] bg-[#202020]"
                 style="padding-bottom: calc(1rem + env(safe-area-inset-bottom)); padding-left: calc(1rem + env(safe-area-inset-left)); padding-right: calc(1rem + env(safe-area-inset-right));"
             >
-                <form @submit.prevent="handleChatSubmit" class="flex gap-2 items-end">
+                <form @submit.prevent="handleChatSubmit($event, 'submit')" class="flex gap-2 items-end">
                     <textarea 
                         ref="chatInputRef"
                         v-model="chatInput"
                         @input="autoResizeChatInput"
-                        @keydown.enter.exact.prevent="handleChatSubmit"
+                        @keydown.enter.exact.prevent="handleChatSubmit($event, 'enter')"
                         placeholder="Type..." 
                         rows="1"
                         style="max-height: 200px;"
@@ -217,7 +217,7 @@
                         </div>
                         <form @submit.prevent="addSavedInfo" class="flex flex-col sm:flex-row gap-2 mt-4">
                             <input type="text" v-model="newInfoText" placeholder="Add new info..." required class="flex-grow p-3 bg-[#1a1a1a] border border-[#444] rounded-md text-base">
-                            <button type="submit" class="px-4 py-3 sm:py-0 bg-[#88aaff] text-[#111] rounded-md font-semibold flex-shrink-0">Add</button>
+                            <button type="submit" class="w-full sm:w-auto px-4 py-3 bg-[#88aaff] text-[#111] rounded-md font-semibold flex-shrink-0">Add</button>
                         </form>
                     </div>
                     <div class="pt-6 border-t border-[#444]">
@@ -239,8 +239,8 @@
 
     </div>
     
-    <script src="[https://cdn.jsdelivr.net/npm/marked/marked.min.js](https://cdn.jsdelivr.net/npm/marked/marked.min.js)"></script>
-    <script src="[https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js](https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js)"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
     <script src="src/app.js" type="module"></script>
 </body>
 </html>

@@ -1,5 +1,3 @@
-// File: src/context_builder.js
-
 export function buildPrompt(globalContext, sessionData) {
     const { ai_name, user_name, user_location, saved_info, ai_long_term_memory } = globalContext;
     const { previous_interactions, current_input } = sessionData;
@@ -22,6 +20,9 @@ export function buildPrompt(globalContext, sessionData) {
         prompt += saved_info.info.map(item => `- ${item}`).join('\n');
         prompt += `\n\n`;
     }
+
+    // === INSTRUCTIONS FOR CODE FORMAT ===
+    prompt += `Important: Whenever you provide code examples, always wrap them in markdown code blocks with the appropriate language specifiers (e.g., \`\`\`python ... \`\`\`).\n\n`;
 
     if (ai_long_term_memory && ai_long_term_memory.memory.length > 0) {
         prompt += `My Long-Term Memory (My previous observations about the user):\n`;
