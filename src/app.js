@@ -1,7 +1,24 @@
+// File: src/app.js
+// Deskripsi: File utama aplikasi yang mengelola semua logika UI, state management (dengan Vue 3),
+// dan interaksi pengguna. Ini adalah jantung dari aplikasi SERAA.
+
 import { initDB, getGlobalContext, saveGlobalContext, upsertSession, getAllSessions, deleteSession as dbDeleteSession } from './db.js';
 import { getApiKey, saveApiKey } from './key_manager.js';
 import { buildPrompt } from './context_builder.js';
 import { callGemini } from './api.js';
+
+// === FUNGSI BANTUAN ===
+// Fungsi krusial untuk "membersihkan" string agar aman ditampilkan sebagai HTML.
+// Ini mencegah error rendering jika kode dari AI mengandung karakter spesial.
+function escapeHtml(unsafe) {
+    if (typeof unsafe !== 'string') return '';
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
 
 const { createApp, ref, reactive, toRefs, onMounted, computed, nextTick } = Vue;
 
@@ -29,17 +46,72 @@ const app = createApp({
         const chatWindow = ref(null);
         const chatInputRef = ref(null);
 
+        // === FUNGSI RENDER UTAMA ===
+        // Fungsi cerdas ini menggantikan renderer markdown standar.
+        const renderMarkdown = (text) => {
+            if (!text) return '';
+
+            // 1. Regex untuk menemukan tag <CODE>...</CODE> kustom kita.
+            const codeBlockRegex = /<CODE language="(\w+)">([\s\S]*?)<\/CODE>/g;
+            
+            // 2. Mengganti setiap blok kode yang ditemukan dengan struktur HTML yang kita inginkan.
+            let processedText = text.replace(codeBlockRegex, (match, language, code) => {
+                const validLanguage = language || 'plaintext';
+                const escapedCodeForAttribute = encodeURIComponent(code); // Aman untuk atribut data-*
+                const escapedCodeForDisplay = escapeHtml(code); // Aman untuk ditampilkan di dalam <pre><code>
+
+                // Struktur HTML untuk blok kode yang cantik.
+                return `
+                    <div class="code-block-wrapper">
+                        <div class="code-block-header">
+                            <span>${validLanguage}</span>
+                            <button class="code-block-copy-btn" data-code="${escapedCodeForAttribute}">
+                                <i class="uil uil-copy"></i>
+                                <span>Copy</span>
+                            </button>
+                        </div>
+                        <pre><code class="language-${validLanguage}">${escapedCodeForDisplay}</code></pre>
+                    </div>
+                `;
+            });
+
+            // 3. Teks yang tersisa (di luar blok kode) diproses sebagai Markdown biasa.
+            // Ini memungkinkan format seperti **bold** atau *italic* tetap berfungsi.
+            // Kita juga mengganti newline (\n) dengan <br> untuk menjaga pemformatan paragraf.
+            processedText = processedText.replace(/\n/g, '<br>');
+            processedText = DOMPurify.sanitize(marked.parse(processedText));
+            
+            return processedText;
+        };
+
+        // Fungsi untuk menangani klik pada tombol "Copy" di blok kode.
+        const handleCopyClick = (event) => {
+            const button = event.target.closest('.code-block-copy-btn');
+            if (button) {
+                const codeToCopy = decodeURIComponent(button.dataset.code);
+                const textarea = document.createElement('textarea');
+                textarea.value = codeToCopy;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+
+                const originalText = button.querySelector('span').textContent;
+                button.querySelector('span').textContent = 'Copied!';
+                setTimeout(() => {
+                    button.querySelector('span').textContent = originalText;
+                }, 2000);
+            }
+        };
+
         onMounted(() => {
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 state.deferredPrompt = e;
-                console.log('`beforeinstallprompt` event was fired. Install button should now be visible.');
             });
             window.addEventListener('appinstalled', () => {
                 state.deferredPrompt = null;
-                console.log('SERAA was installed.');
             });
-
             mainInit();
         });
         
@@ -73,29 +145,6 @@ const app = createApp({
                 }
             });
         };
-        
-        const renderMarkdown = (text) => {
-            return DOMPurify.sanitize(marked.parse(text || ''));
-        };
-
-        const handleCopyClick = (event) => {
-            const button = event.target.closest('.code-block-copy-btn');
-            if (button) {
-                const codeToCopy = decodeURIComponent(button.dataset.code);
-                const textarea = document.createElement('textarea');
-                textarea.value = codeToCopy;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-
-                const originalText = button.querySelector('span').textContent;
-                button.querySelector('span').textContent = 'Copied!';
-                setTimeout(() => {
-                    button.querySelector('span').textContent = originalText;
-                }, 2000);
-            }
-        };
 
         const toggleSidebar = () => {
             state.isSidebarVisible = !state.isSidebarVisible;
@@ -112,12 +161,7 @@ const app = createApp({
         const promptInstall = async () => {
             if (!state.deferredPrompt) return;
             state.deferredPrompt.prompt();
-            const { outcome } = await state.deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                console.log('User accepted the SERAA installation');
-            } else {
-                console.log('User dismissed the SERAA installation');
-            }
+            await state.deferredPrompt.userChoice;
             state.deferredPrompt = null;
         };
 
@@ -142,8 +186,8 @@ const app = createApp({
             newSession.id = await upsertSession(newSession);
             state.sessions.push(newSession);
             if (select) {
-               selectSession(newSession.id);
-               state.isSidebarVisible = false;
+                selectSession(newSession.id);
+                state.isSidebarVisible = false;
             }
             return newSession;
         };
@@ -210,10 +254,9 @@ const app = createApp({
             }
         };
 
-        // === FUNGSI SUBMIT CHAT DIPERBARUI ===
         const handleChatSubmit = async (event, sourceType = 'submit') => {
             if (sourceType === 'enter' && window.innerWidth < 768) {
-                return; // Blokir 'Enter' untuk submit di mobile
+                return;
             }
             
             const userInput = state.chatInput.trim();
@@ -294,6 +337,7 @@ Your reflection on the user:`;
             }
         };
 
+        // Mengekspos semua state dan method yang dibutuhkan oleh template.
         return {
             ...toRefs(state),
             chatWindow,
