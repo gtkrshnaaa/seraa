@@ -22,7 +22,7 @@ export function buildPrompt(globalContext, sessionData) {
     }
 
     // === INSTRUCTIONS FOR CODE FORMAT ===
-    prompt += `Important: Whenever you provide code examples, always wrap them in markdown code blocks with the appropriate language specifiers (e.g., \`\`\`python ... \`\`\`).\n\n`;
+    // prompt += `Important: Whenever you provide code examples, always wrap them in markdown code blocks with the appropriate language specifiers (e.g., \`\`\`python ... \`\`\`).\n\n`;
 
     if (ai_long_term_memory && ai_long_term_memory.memory.length > 0) {
         prompt += `My Long-Term Memory (My previous observations about the user):\n`;
