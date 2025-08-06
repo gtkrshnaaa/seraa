@@ -351,6 +351,23 @@ Your reflection on the user:`;
             }
         };
 
+
+        const editUserMessage = (interaction) => {
+            if (!interaction || !interaction.input) return;
+
+            // 1. Ambil teks dari interaksi yang mau diedit dan masukkan ke chat input
+            state.chatInput = interaction.input;
+
+            // 2. Fokus ke textarea agar pengguna bisa langsung mengetik
+            nextTick(() => {
+                if (chatInputRef.value) {
+                    chatInputRef.value.focus();
+                    // 3. Sesuaikan tinggi textarea secara otomatis
+                    autoResizeChatInput();
+                }
+            });
+        };
+
         return {
             ...toRefs(state),
             chatWindow,
@@ -372,6 +389,7 @@ Your reflection on the user:`;
             autoResizeChatInput,
             promptInstall,
             handleCopyClick,
+            editUserMessage,
         };
     }
 });

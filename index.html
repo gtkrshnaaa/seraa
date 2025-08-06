@@ -133,7 +133,12 @@
             <!-- Chat Window -->
             <main id="chat-window" class="flex-grow p-4 overflow-y-auto flex flex-col gap-1" ref="chatWindow" @click="handleCopyClick">
                 <template v-if="activeSession" v-for="interaction in activeSession.previous_interactions">
-                    <div class="w-full flex justify-end">
+                    <div class="w-full flex justify-end group"> 
+                        <div class="flex items-center mr-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button @click.stop="editUserMessage(interaction)" title="Edit and Resend" class="p-2 rounded-full hover:bg-white/10">
+                                <i class="uil uil-pen text-lg"></i>
+                            </button>
+                        </div>
                         <div class="max-w-[99%] sm:max-w-[99%] px-4 py-2 my-1 bg-[#2a2a2a] text-white rounded-2xl rounded-br-none break-words" v-html="renderMarkdown(interaction.input)"></div>
                     </div>
                     <div v-if="interaction.response" class="w-full flex justify-start">
