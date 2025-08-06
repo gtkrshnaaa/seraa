@@ -7,6 +7,10 @@ import { callGemini } from './api.js';
 
 const { createApp, ref, reactive, toRefs, onMounted, computed, nextTick } = Vue;
 
+const toRawObject = (proxy) => {
+    return JSON.parse(JSON.stringify(proxy));
+};
+
 const app = createApp({
     setup() {
         const state = reactive({
@@ -18,14 +22,13 @@ const app = createApp({
             isTyping: false,
             isRemembering: false,
             chatInput: '',
-            editableContext: null, // A deep copy for editing in settings
+            editableContext: null,
             editableApiKey: '',
             newInfoText: '',
         });
 
-        const chatWindow = ref(null); // To control scrolling
+        const chatWindow = ref(null);
 
-        // === COMPUTED PROPERTIES ===
         const sortedSessions = computed(() => {
             return [...state.sessions].sort((a, b) => {
                 if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
@@ -33,9 +36,6 @@ const app = createApp({
             });
         });
         
-        // === METHODS ===
-
-        // --- UI & Lifecycle ---
         onMounted(async () => {
             await initDB();
             if ('serviceWorker' in navigator) {
@@ -68,16 +68,15 @@ const app = createApp({
             state.isSidebarVisible = !state.isSidebarVisible;
         };
 
-        // --- Data & Session Management ---
         const loadInitialData = async () => {
             state.globalContext = await getGlobalContext();
             state.sessions = await getAllSessions();
             let sessionToLoad = state.sessions.length > 0
-                ? state.sessions.reduce((latest, current) => new Date(latest.date_time) > new Date(current.date_time) ? latest : current)
+                ? sortedSessions.value[0]
                 : null;
             
             if (!sessionToLoad) {
-                sessionToLoad = await createNewSession(false); // don't select it yet
+                sessionToLoad = await createNewSession(false);
             }
             selectSession(sessionToLoad.id);
         };
@@ -99,8 +98,11 @@ const app = createApp({
         };
         
         const selectSession = (sessionId) => {
-            state.activeSession = state.sessions.find(s => s.id === sessionId);
-            scrollToBottom();
+            const foundSession = state.sessions.find(s => s.id === sessionId);
+            if(foundSession) {
+                state.activeSession = foundSession;
+                scrollToBottom();
+            }
             state.isSidebarVisible = false;
         };
 
@@ -108,7 +110,8 @@ const app = createApp({
             const newName = prompt("Enter new session name:", session.name);
             if (newName && newName.trim() !== "") {
                 session.name = newName.trim();
-                await upsertSession(session);
+                // Convert proxy to raw object before saving
+                await upsertSession(toRawObject(session));
             }
         };
 
@@ -118,8 +121,7 @@ const app = createApp({
                 state.sessions = state.sessions.filter(s => s.id !== session.id);
                 if (state.activeSession && state.activeSession.id === session.id) {
                     if (state.sessions.length > 0) {
-                        const latestSession = sortedSessions.value[0];
-                        selectSession(latestSession.id);
+                        selectSession(sortedSessions.value[0].id);
                     } else {
                         await createNewSession();
                     }
@@ -129,13 +131,12 @@ const app = createApp({
 
         const togglePinSession = async (session) => {
             session.is_pinned = !session.is_pinned;
-            await upsertSession(session);
+            // FIX: Convert proxy to raw object before saving
+            await upsertSession(toRawObject(session));
         };
 
-        // --- Settings Management ---
         const openSettings = () => {
-            // Create a deep copy for safe editing
-            state.editableContext = JSON.parse(JSON.stringify(state.globalContext));
+            state.editableContext = toRawObject(state.globalContext);
             state.editableApiKey = getApiKey() || '';
             state.isSettingsOpen = true;
         };
@@ -146,9 +147,10 @@ const app = createApp({
         };
         
         const saveSettings = async () => {
-            state.globalContext = JSON.parse(JSON.stringify(state.editableContext));
+            state.globalContext = { ...state.editableContext };
             saveApiKey(state.editableApiKey);
-            await saveGlobalContext(state.globalContext);
+            // FIX: Ensure the object saved is raw
+            await saveGlobalContext(toRawObject(state.globalContext));
             alert('Settings saved!');
             closeSettings();
         };
@@ -160,10 +162,9 @@ const app = createApp({
             }
         };
 
-        // --- Core Chat Logic ---
         const handleChatSubmit = async () => {
             const userInput = state.chatInput.trim();
-            if (!userInput) return;
+            if (!userInput || state.isTyping) return;
 
             const apiKey = getApiKey();
             if (!apiKey) {
@@ -171,30 +172,29 @@ const app = createApp({
                 alert('Please set your Gemini API key in the settings.');
                 return;
             }
-
-            // Add user message to state
+            
             state.activeSession.previous_interactions.push({ input: userInput, response: '' });
             state.chatInput = '';
             state.isTyping = true;
             scrollToBottom();
             
-            const sessionData = { ...state.activeSession, current_input: userInput };
+            const sessionData = { ...toRawObject(state.activeSession), current_input: userInput };
             const prompt = buildPrompt(state.globalContext, sessionData);
             const aiResponse = await callGemini(prompt, apiKey, state.globalContext.safety_settings);
 
             state.isTyping = false;
-            // Find the last interaction and update the response
             state.activeSession.previous_interactions[state.activeSession.previous_interactions.length - 1].response = aiResponse;
             
             scrollToBottom();
 
-            // Auto-rename session on first message
             if (state.activeSession.previous_interactions.length === 1) {
                 const renamePrompt = `Based on this initial user prompt, create a very short title for this conversation (maximum 4-5 words). User Prompt: "${userInput}"`;
-                state.activeSession.name = await callGemini(renamePrompt, apiKey, state.globalContext.safety_settings);
+                const newTitle = await callGemini(renamePrompt, apiKey, state.globalContext.safety_settings);
+                state.activeSession.name = newTitle.replace(/"/g, ''); // Hapus tanda kutip jika ada
             }
 
-            await upsertSession(state.activeSession);
+            // Convert proxy to raw object before saving
+            await upsertSession(toRawObject(state.activeSession));
         };
         
         const handleRemember = async () => {
@@ -211,7 +211,7 @@ const app = createApp({
                     .map(i => `User: ${i.input}\nAI: ${i.response}`)
                     .join('\n\n');
                 
-                const reflectionPrompt = `Your name is ${state.globalContext.ai_name}. Your interlocutors is ${state.globalContext.user_name}.
+                const reflectionPrompt = `Your name is ${state.globalContext.ai_name}. Your interlocutor is ${state.globalContext.user_name}.
 Based 4 until 10 conversation excerpt below, formulate a single, insightful observation about the user or their current activity from your perspective.
 Start your response with "I've noticed that..." or "I understand now that..." or a similar reflective phrase. Be concise. 
 Remember specific things about your conversation partner, such as what he did, the feelings he experienced, etc., mention the name of the activity or experience explicitly.
@@ -230,7 +230,8 @@ Your reflection on the user:`;
                     memory_content: reflection
                 });
 
-                await saveGlobalContext(state.globalContext);
+                // FIX: Convert proxy to raw object before saving
+                await saveGlobalContext(toRawObject(state.globalContext));
                 alert(`New reflection saved:\n"${reflection}"`);
 
             } catch (error) {
@@ -262,7 +263,6 @@ Your reflection on the user:`;
     }
 });
 
-// Mount the app only after marked and DOMPurify are loaded
 window.addEventListener('load', () => {
     app.mount('#app');
 });
