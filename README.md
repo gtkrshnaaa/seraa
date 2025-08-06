@@ -1,5 +1,3 @@
-DONT TOUCH THIS STABLE PROTOYPE, JUST COPY THEN MODIFY
-
 # **SERAA – Self Reflection Agentic AI**
 
 *A privacy-first personal AI designed to reflect you.*
