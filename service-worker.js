@@ -1,6 +1,6 @@
 // File: service-worker.js
 
-const CACHE_NAME = 'seraa-cache-v14'; // Version bump for new fixes
+const CACHE_NAME = 'seraa-cache-v24'; // Version bump for new assets
 const URLS_TO_CACHE = [
     // Paths are now relative to the project root.
     'index.html',
@@ -19,6 +19,9 @@ const URLS_TO_CACHE = [
     
     // External resources
     'https://cdn.jsdelivr.net/npm/idb@7/build/index.min.js',
+    'https://cdn.jsdelivr.net/npm/marked/marked.min.js',
+    'https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js',
+    'https://unicons.iconscout.com/release/v4.0.8/css/line.css', // <-- Added this
 
     // Key icons for PWA metadata
     'assets/icons/icon-192x192.png',
