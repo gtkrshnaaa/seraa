@@ -28,7 +28,7 @@ export async function callGemini(prompt, apiKey, safetyThreshold = 'BLOCK_NONE')
 
     const body = {
         contents: [{ parts: [{ text: prompt }] }],
-        safetySettings: safetySettings
+        safety_settings: safetySettings
     };
 
     try {
