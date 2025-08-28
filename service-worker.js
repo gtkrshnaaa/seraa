@@ -1,6 +1,6 @@
 // File: service-worker.js
 
-const CACHE_NAME = 'seraa-cache-v52'; // Version bump for new architecture
+const CACHE_NAME = 'seraa-cache-v53'; // Version bump for new architecture
 const URLS_TO_CACHE = [
     'index.html',
     'manifest.json',
