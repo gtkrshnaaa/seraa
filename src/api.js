@@ -2,7 +2,7 @@
 // Description: This file is responsible for handling all communications with the Gemini API.
 // It uses a non-streaming approach for greater stability.
 
-const API_URL_BASE = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash";
+const API_URL_BASE = "https://generativelanguage.googleapis.com/v1beta/models/models/gemma-3-1b-it";
 
 // A list of user-adjustable safety categories.
 const ADJUSTABLE_SAFETY_CATEGORIES = [
